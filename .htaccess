@@ -1,0 +1,8 @@
+RewriteEngine on
+RewriteBase /g-server/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ g-server.php
+
+<IfModule mod_autoindex.c>
+	Options -Indexes
+</IfModule>
