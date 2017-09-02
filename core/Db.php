@@ -17,9 +17,9 @@ final class Db
     /**
      * Contains the Instance
      *
-     * @var Db
+     * @var Db|null
      */
-    private static $Instance;
+    private static $Instance = NULL;
 
     /**
      * Contains a Mysqli Instance
@@ -27,6 +27,13 @@ final class Db
      * @var \mysqli
      */
     private $Mysqli;
+
+    /**
+     * Contains the table prefix
+     *
+     * @var string
+     */
+    private $prefix = '';
 
     /**
      * Db constructor.
@@ -41,14 +48,16 @@ final class Db
     /**
      * Initiate the Instance and return it
      *
+     * @param string $module
+     *
      * @return Db
      */
-    public static function getInstance(): Db {
+    public static function getInstance(string $module): Db {
 
         if (self::$Instance === NULL) {
 
             $Db = new Db();
-            $Db->connect();
+            $Db->connect($module);
             self::$Instance = $Db;
 
         }
@@ -62,9 +71,22 @@ final class Db
      *
      * @return void
      */
-    private function connect(): void {
+    private function connect(string $module): void {
 
-        $config = DB_CONFIG;
+        switch($module) {
+
+            case "frontend":
+                $config = DB_FRONTEND_CONFIG;
+                break;
+            case "backend":
+                $config = DB_BACKEND_CONFIG;
+                break;
+            default:
+                $config = DB_FRONTEND_CONFIG;
+                break;
+
+        }
+
         $this->Mysqli = new \mysqli(
             $config['host'],
             $config['user'],
@@ -73,6 +95,8 @@ final class Db
             $config['port'],
             $config['socket']
         );
+
+        $this->prefix = $config['prefix'];
 
     }
 
