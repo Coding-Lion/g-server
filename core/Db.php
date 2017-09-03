@@ -124,6 +124,8 @@ final class Db
 
         $countNeedle = substr_count($sql, '?');
 
+        $sql = str_replace('FROM ', 'FROM ' . $this->prefix, $sql);
+
         if ($countNeedle === 0 && $params === NULL) {
             return $sql;
         }
