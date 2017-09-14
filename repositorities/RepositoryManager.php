@@ -27,8 +27,6 @@ final class RepositoryManager
     private function __clone() {}
 
     /**
-     * TODO: Change tables to singleton pattern
-     *
      * @param string $repository
      *
      * @return RepositoryManager

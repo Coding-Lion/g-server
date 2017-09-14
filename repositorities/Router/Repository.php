@@ -43,7 +43,7 @@ class Repository
 
         $table = __NAMESPACE__ . DIRECTORY_SEPARATOR . 'tables' . DIRECTORY_SEPARATOR . $tablename;
 
-        return new $table();
+        return $table::getInstance();
 
     }
 }

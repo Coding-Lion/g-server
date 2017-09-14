@@ -10,10 +10,13 @@ declare(strict_types=1);
 
 namespace gserver\repositorities\router\tables;
 
+
+use gserver\repositorities\Table;
+
 /**
  * Table prefix_rewrite_urls
  */
-class rewrite_urls
+class rewrite_urls extends Table
 {
     /**
      * @var int
@@ -150,63 +153,5 @@ class rewrite_urls
      */
     public function getActive(): string {
         return $this->active;
-    }
-
-    /**
-     * Returns the latest Dataset
-     *
-     * @return array
-     */
-    public function getDataset(): array {
-
-        $vars = get_class_vars(__CLASS__);
-
-        foreach ($vars as $key => &$value) {
-            $function = 'get' . ucfirst($key);
-            $value = $this->$function();
-        }
-
-        return $vars;
-
-    }
-
-    /**
-     * Set all class properties from a Db result
-     *
-     * @param array $params
-     */
-    public function setDataset(array $params = []): void {
-
-        $Reflection = new \ReflectionClass($this);
-        $table = $Reflection->getShortName();
-
-        if (empty($params)) {
-            $row = Gserver()->Db()->fetchRow("SELECT * FROM " . $table . " ORDER BY id DESC");
-        } else {
-
-            if (count($params) !== 2) {
-                // Failure
-            }
-
-            $key = array_shift($params);
-            $value = array_shift($params);
-
-            $row = Gserver()->Db()->fetchRow("SELECT * FROM " . $table . " WHERE " . $key . " = " . $value);
-
-        }
-
-        if (!empty($row)) {
-
-            $vars = get_class_vars(__CLASS__);
-
-            foreach ($row as $key => $value) {
-                $function = 'set' . ucfirst(array_shift($vars));
-                $this->$function($value);
-            }
-
-        } else {
-            $this->setId(0);
-        }
-
     }
 }
