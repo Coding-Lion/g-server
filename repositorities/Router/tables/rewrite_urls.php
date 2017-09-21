@@ -19,6 +19,16 @@ use gserver\repositorities\Table;
 class rewrite_urls extends Table
 {
     /**
+     * @var rewrite_urls|null
+     */
+    private static $Instance = NULL;
+
+    /**
+     * @var Db|null
+     */
+    private $Db = NULL;
+
+    /**
      * @var int
      */
     private $id = 0;
@@ -56,6 +66,25 @@ class rewrite_urls extends Table
      * @var string
      */
     private $active = 'no';
+
+    /**
+     * rewrite_urls constructor.
+     */
+    private function __construct() {
+        $this->Db = Gserver()->Db();
+    }
+
+    /**
+     * @return rewrite_urls|null
+     */
+    public static function getInstance(): rewrite_urls
+    {
+        if (self::$Instance === NULL) {
+            self::$Instance = new rewrite_urls();
+        }
+
+        return self::$Instance;
+    }
 
     /**
      * @param int $id
