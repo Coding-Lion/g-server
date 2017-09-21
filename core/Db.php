@@ -52,7 +52,12 @@ final class Db
      *
      * @return Db
      */
-    public static function getInstance(string $module): Db {
+    public static function getInstance(string $module = ""): Db {
+
+        if (self::$Instance === NULL && empty($module)) {
+            // Failure
+            die();
+        }
 
         if (self::$Instance === NULL) {
 
@@ -178,8 +183,11 @@ final class Db
             // Failure
         }
 
+        if($results === false) {
+            die(var_dump($prepared_sql));
+        }
         if ($results->num_rows === 0) {
-            return getZeroResultByFunction(debug_backtrace()[1]['function']);
+            return $this->getZeroResultByFunction(debug_backtrace()[1]['function']);
         }
 
         return $results;
@@ -250,7 +258,7 @@ final class Db
         $mysqliResult = $this->sendQuery($sql, $params);
 
         if (is_object($mysqliResult)) {
-            while ($row = $mysqliResult->fetch_array()) {
+            while ($row = $mysqliResult->fetch_array(MYSQLI_ASSOC)) {
                 return $row;
             }
         }
