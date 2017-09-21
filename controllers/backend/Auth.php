@@ -8,8 +8,9 @@
 
 namespace gserver\controllers\backend;
 
+use gserver\controllers\Controller;
 
-class Auth
+class Auth extends Controller
 {
 
 }

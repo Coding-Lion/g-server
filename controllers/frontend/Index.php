@@ -6,10 +6,12 @@
  * Time: 03:17
  */
 
-namespace gserver\controllers;
+namespace gserver\controllers\frontend;
 
 
-final class Index
+use gserver\controllers\Controller;
+
+final class Index extends Controller
 {
     public function indexAction(): bool {
         return true;

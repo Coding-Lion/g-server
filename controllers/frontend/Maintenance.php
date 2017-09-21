@@ -8,8 +8,11 @@
 
 namespace gserver\controllers\frontend;
 
+use gserver\controllers\Controller;
 
-class Maintenance
+class Maintenance extends Controller
 {
-
+    public function indexAction(): bool {
+        return true;
+    }
 }

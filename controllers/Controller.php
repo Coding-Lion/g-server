@@ -9,7 +9,7 @@
 namespace gserver\controllers;
 
 
-class Controller
+abstract class Controller
 {
 
 }

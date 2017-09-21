@@ -9,7 +9,9 @@
 namespace gserver\controllers;
 
 
-final class NotFound
+use gserver\controllers\Controller;
+
+final class NotFound extends Controller
 {
     public function indexAction(): bool {
         return true;
