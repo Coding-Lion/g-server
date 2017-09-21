@@ -24,9 +24,7 @@ abstract class Table
     /**
      * Table constructor.
      */
-    private function __construct() {
-        $this->Db = Gserver()->Db();
-    }
+    private function __construct() {}
 
     /**
      * Singleton pattern don't allow clone
@@ -34,20 +32,9 @@ abstract class Table
     private function __clone() {}
 
     /**
-     * Initiate the Instance and return it
-     *
-     * @return Router
+     * @return mixed
      */
-    public static function getInstance() : Router {
-
-        if (self::$Instance === NULL) {
-            $Router = new Router();
-            self::$Instance = $Router;
-        }
-
-        return self::$Instance;
-
-    }
+    abstract public static function getInstance();
 
     /**
      * Returns the latest Dataset
@@ -56,7 +43,16 @@ abstract class Table
      */
     public function getDataset(): array {
 
-        $vars = get_class_vars(__CLASS__);
+        $Reflection = new \ReflectionClass($this);
+
+        foreach ($Reflection->getProperties() as $obj) {
+            $vars[$obj->name] = '';
+        }
+
+        // Remove Instance
+        array_shift($vars);
+        // Remove Db
+        array_shift($vars);
 
         foreach ($vars as $key => &$value) {
             $function = 'get' . ucfirst($key);
@@ -74,6 +70,10 @@ abstract class Table
      */
     public function setDataset(array $params = []): void {
 
+        if ($this->Db === NULL) {
+            $this->Db = Gserver()->Db();
+        }
+
         $Reflection = new \ReflectionClass($this);
         $table = $Reflection->getShortName();
 
@@ -84,17 +84,37 @@ abstract class Table
             if (count($params) !== 2) {
                 // Failure
             }
+            else {
 
-            $key = array_shift($params);
-            $value = array_shift($params);
+                $key = array_shift($params);
+                $value = array_shift($params);
 
-            $row = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE " . $key . " = " . $value);
+                if (empty($value)) {
+                    $value = "''";
+                }
+
+                if(!empty($value) && !is_numeric($value)) {
+                    $value = "'" . $value . "'";
+                }
+
+                $row = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE " . $key . " = " . $value);
+
+            }
 
         }
 
         if (!empty($row)) {
 
-            $vars = get_class_vars(__CLASS__);
+            foreach ($Reflection->getProperties() as $obj) {
+                $vars[] = $obj->name;
+            }
+
+            $vars2 = $vars;
+
+            // Remove Instance
+            array_shift($vars);
+            // Remove Db
+            array_shift($vars);
 
             foreach ($row as $key => $value) {
                 $function = 'set' . ucfirst(array_shift($vars));
@@ -104,6 +124,36 @@ abstract class Table
         } else {
             $this->setId(0);
         }
+
+    }
+
+    public function getAll(array $params = []): array {
+
+        if ($this->Db === NULL) {
+            $this->Db = Gserver()->Db();
+        }
+
+        $where = '';
+
+        foreach ($params as $key => $value) {
+
+            if (empty($value)) {
+                $value = "''";
+            }
+
+            if (!empty($value) && !is_numeric($value)) {
+                $value = "'" . $value . "'";
+            }
+
+            $where .= $key . ' = ' . $value . ' AND ';
+        }
+
+        $where = substr($where,0,-5);
+
+        $Reflection = new \ReflectionClass($this);
+        $table = $Reflection->getShortName();
+
+        return $this->Db->fetchAll("SELECT * FROM " . $table . " WHERE " . $where);
 
     }
 }
