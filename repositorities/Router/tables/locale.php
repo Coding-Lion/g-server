@@ -58,8 +58,8 @@ class locale extends Table
     /**
      * @return locale|null
      */
-    public static function getInstance(): locale
-    {
+    public static function getInstance(): locale {
+
         if (self::$Instance === NULL) {
             self::$Instance = new locale();
         }

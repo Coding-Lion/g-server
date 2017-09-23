@@ -70,8 +70,8 @@ class text_module extends Table
     /**
      * @return text_module|null
      */
-    public static function getInstance(): text_module
-    {
+    public static function getInstance(): text_module {
+
         if (self::$Instance === NULL) {
             self::$Instance = new text_module();
         }

@@ -77,8 +77,8 @@ class rewrite_urls extends Table
     /**
      * @return rewrite_urls|null
      */
-    public static function getInstance(): rewrite_urls
-    {
+    public static function getInstance(): rewrite_urls {
+
         if (self::$Instance === NULL) {
             self::$Instance = new rewrite_urls();
         }

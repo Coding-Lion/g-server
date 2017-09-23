@@ -109,8 +109,6 @@ abstract class Table
                 $vars[] = $obj->name;
             }
 
-            $vars2 = $vars;
-
             // Remove Instance
             array_shift($vars);
             // Remove Db
@@ -119,6 +117,16 @@ abstract class Table
             foreach ($row as $key => $value) {
                 $function = 'set' . ucfirst(array_shift($vars));
                 $this->$function($value);
+            }
+
+            // Is needed for relationships with other tables
+            if (!empty($vars)) {
+
+                foreach($vars as $var) {
+                    $function = 'set' . ucfirst($var);
+                    $this->$function();
+                }
+
             }
 
         } else {

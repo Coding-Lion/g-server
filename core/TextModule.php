@@ -79,7 +79,7 @@ final class TextModule
 
         $this->setBlocks($blocks);
 
-        $blocks = $Table->getAll(['namespace' => 'global']);
+        $blocks = $Table->getAll(['namespace' => $Router->getLocale().'/global']);
 
         $this->setBlocks($blocks);
     }
@@ -88,7 +88,7 @@ final class TextModule
 
         if (!empty($blocks)) {
 
-            $namespace = $blocks[0] === "global" ? "global" : $this->controller;
+            $namespace = $blocks[0]['namespace'] === "de/global" ? "global" : $this->controller;
 
             foreach($blocks as $block) {
 
