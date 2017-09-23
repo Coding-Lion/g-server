@@ -89,13 +89,17 @@ final class Request
 
         $this->module = $Router->getModule();
 
-        // Sets the database connection
-        Gserver()->Db($this->module);
+        $namespace = 'gserver\\controllers\\' . $this->module . '\\';
 
-        $controller = $Router->getController();
+        $controller = $namespace . $Router->getController();
         $action = $Router->getAction();
 
-        $this->allowedParams = CONTROLLER_PARAMETER[$controller];
+        if(Gserver()->Config()->getConfig('core')['web_maintenance'] === "yes") {
+            $controller = $namespace . 'Maintenance';
+            $action = 'index';
+        }
+
+        //$this->allowedParams = CONTROLLER_PARAMETER[$controller];
 
         if (empty($this->allowedParams)) {
             // Failure
@@ -112,6 +116,8 @@ final class Request
             $this->action = 'indexAction';
 
         }
+
+        $this->dispatchController();
 
     }
 
@@ -139,13 +145,26 @@ final class Request
     public function dispatchController(): void {
 
         $action = $this->action . 'Action';
-        $result = $this->Controller->$action($this->params);
 
-        if ($result === false) {
+        if (!in_array($action,get_class_methods($this->Controller->getClass()))) {
+            // Failure
+            $result = false;
+        } else {
+            $result = $this->Controller->$action($this->params);
+        }
 
-            require_once('..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . 'NotFound.php');
+        $securityCheck = $this->Controller->preDispatch();
+
+        // TODO: implement access denied controller?
+        if ($result === false || $securityCheck === false) {
+
+            $file = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers' .
+                DIRECTORY_SEPARATOR . 'NotFound.php');
+
+            require_once($file);
+
             $this->Controller = new NotFound();
-            $this->Controller->indexAction();
+            $securityCheck === false ? $this->Controller->forbiddenAction() : $this->Controller->indexAction();
 
         }
 
@@ -158,26 +177,49 @@ final class Request
      */
     private function setToInclude(): void {
 
-        $basepath = '..' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR;
+        $basepath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR .
+            $this->module . DIRECTORY_SEPARATOR;
 
-        $header = $basepath . 'header.php';
-        $footer = $basepath . 'footer.php';
+        $header = realpath($basepath . 'header.php');
+        $footer = realpath($basepath . 'footer.php');
 
         $controllerPath = $basepath . strtolower($this->Controller->getName()) . DIRECTORY_SEPARATOR;
-        $file = $controllerPath . $this->action . '.php';
+        $file = realpath($controllerPath . $this->action . '.php');
+
+        if($header === false || $file === false || $footer === false) {
+            // Failure
+            die("A template file is missing");
+        }
 
         $this->toInclude = [$header,$file,$footer];
 
     }
 
+    /**
+     * @return array
+     */
+    public function getToInclude(): array {
+        return $this->toInclude;
+    }
+
+    /**
+     * @return array
+     */
      public function getParams(): array {
         return $this->params;
      }
 
     /**
-     * @return object
+     * @return Instance of the called controller class
      */
-    public function getController(): object {
+    public function getController() {
         return $this->Controller;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction(): string {
+        return $this->action;
     }
 }

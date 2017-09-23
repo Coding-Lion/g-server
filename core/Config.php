@@ -68,7 +68,7 @@ final class Config
 
     /**
      * @param string $config
-     * 
+     *
      * @return array
      */
     public function getConfig(string $config): array {

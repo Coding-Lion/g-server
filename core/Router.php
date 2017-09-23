@@ -58,15 +58,9 @@ final class Router
      */
     private function __construct() {
 
-        $Reflection = new \ReflectionClass($this);
-
-        $this->Repository = Gserver()->RepositoryManager(
-            ['namespace' => 'repositorities',
-            'repositority' => $Reflection->getShortName()]
-        )->getRepository();
-
         $uri = strtolower($_SERVER['REQUEST_URI']);
-        $rawLink = strpos($uri, '/') === 1 ? substr($uri,1) : $uri;
+        $rawLink = strpos($uri, '/') === 0 ? substr($uri,1) : $uri;
+        $rawLink = str_replace('g-server/', '', $rawLink);
         $params = '';
 
         if (strpos($rawLink, '?') === 1) {
@@ -79,14 +73,25 @@ final class Router
             $this->rawLink = $rawLink;
         }
 
+        $this->setModule($rawLink);
+
+        // Sets the database connection
+        Gserver()->Db($this->module);
+
+        $Reflection = new \ReflectionClass($this);
+
+        $this->Repository = Gserver()->RepositoryManager(
+            ['namespace' => 'repositorities',
+            'repositority' => $Reflection->getShortName()]
+        )->getRepository();
+
         $this->Repository->getTable('rewrite_urls')->getDataset();
 
         if (!$this->isLinkMapped($rawLink)) {
 
-            $this->setModule($this->rawLink);
-            $this->setLocale($this->rawLink);
-            $this->setController($this->rawLink);
-            $this->setAction($this->rawLink);
+            $this->setLocale($rawLink);
+            $this->setController($rawLink);
+            $this->setAction($rawLink);
             $this->setParams($params);
 
         }
@@ -133,7 +138,8 @@ final class Router
      */
     private function setLocale(string $link): void {
 
-        $this->locale = array_shift(explode('/',$link));
+        $locale = explode('/',$link);
+        $this->locale = array_shift($locale);
 
         if (!$this->localeExists()) {
 
@@ -160,20 +166,31 @@ final class Router
      */
     private function setController(string $link): void {
 
-        $path = '..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR;
+        $path = __DIR__ . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR;
         $modulePath = $this->module . DIRECTORY_SEPARATOR;
         $parts = explode('/',$link);
 
-        if ($this->module === "backend") {
-            $controller = $parts[2];
+        if(empty($parts[0])) {
+            $controller = "Index";
         } else {
-            $controller = $parts[1];
+            if ($this->module === "backend") {
+                $controller = $parts[2];
+            } else {
+                $controller = $parts[1];
+            }
         }
 
-        $file = $path . $modulePath . $controller . '.php';
+        $file = realpath($path . $modulePath . $controller . '.php');
+
+        require_once($path . 'Controller.php');
 
         if (file_exists($file)) {
+
             require_once($file);
+
+            // TODO: There is a better solution for this
+            require_once(realpath($path . $modulePath . 'Maintenance' . '.php'));
+
         } else {
             $controller = 'NotFound';
             require_once($path . 'NotFound.php');
@@ -235,15 +252,17 @@ final class Router
 
         $params = [];
 
-        foreach ($parts as $part) {
+        if(!empty($parts[0])) {
+            foreach ($parts as $part) {
 
-            $controllerParams = explode('=', $part);
+                $controllerParams = explode('=', $part);
 
-            $key = $controllerParams[0];
-            $value = $controllerParams[1];
+                $key = $controllerParams[0];
+                $value = $controllerParams[1];
 
-            $params[$key] = $value;
+                $params[$key] = $value;
 
+            }
         }
 
         $this->params = $params;

@@ -131,7 +131,11 @@ final class Db
 
         $countNeedle = substr_count($sql, '?');
 
-        $sql = str_replace('FROM ', 'FROM ' . $this->prefix, $sql);
+        if ($params[0] === NO_PREFIX) {
+            array_shift($params);
+        } else {
+            $sql = str_replace('FROM ', 'FROM ' . $this->prefix, $sql);
+        }
 
         if ($countNeedle === 0 && $params === NULL) {
             return $sql;
