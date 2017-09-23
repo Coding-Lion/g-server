@@ -6,6 +6,8 @@
  * Time: 09:38
  */
 
+//<editor-fold desc="database constants"
+
 const DB_FRONTEND_CONFIG = [
     'host'      => 'localhost',
     'user'      => 'root',
@@ -26,6 +28,11 @@ const DB_BACKEND_CONFIG = [
     'socket'    => 'false',
 ];
 
+const NO_PREFIX = 'no_prefix';
+
+//</editor-fold>
+
+// These levels are needed, used in all controllers
 const SECURITY_LEVEL = [
     'Anonymous'     => -1,
     'User'          => 0,
@@ -33,5 +40,3 @@ const SECURITY_LEVEL = [
     'Developer'     => 2,
     'Administrator' => 3,
 ];
-
-const NO_PREFIX = 'no_prefix';

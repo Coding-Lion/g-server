@@ -6,6 +6,8 @@
  * Time: 23:22
  */
 
+header('Content-Type: text/html; charset=utf-8');
+
 /**
  * Load all necessary files
  */
@@ -22,17 +24,7 @@ $Request = Gserver()->Request();
 $Controller = $Request->getController();
 
 /**
- * @var array
- */
-$params = $Request->getParams();
-
-/**
- * @var gserver\core\TextModule
- */
-$TextModule = $Controller->getTextModule();
-
-/**
  * Includes the requested source code
  */
-$Controller->loadTemplate();
+$Controller->loadTemplate($Request->getToInclude());
 
