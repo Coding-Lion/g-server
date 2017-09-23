@@ -25,3 +25,13 @@ const DB_BACKEND_CONFIG = [
     'port'      => 3306,
     'socket'    => 'false',
 ];
+
+const SECURITY_LEVEL = [
+    'Anonymous'     => -1,
+    'User'          => 0,
+    'Game_Master'   => 1,
+    'Developer'     => 2,
+    'Administrator' => 3,
+];
+
+const NO_PREFIX = 'no_prefix';

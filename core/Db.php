@@ -101,6 +101,8 @@ final class Db
             $config['socket']
         );
 
+        $this->Mysqli->set_charset("utf8");
+
         $this->prefix = $config['prefix'];
 
     }
