@@ -13,4 +13,33 @@ use gserver\controllers\Controller;
 class Auth extends Controller
 {
 
+    /**
+     * @return string
+     */
+    public function getClass(): string {
+        return __CLASS__;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string {
+        return "Auth";
+    }
+
+    /**
+     * @return bool
+     */
+    public function preDispatch(): bool {
+
+        $securityLevel = Gserver()->Session()->getUser()['account']['SecurityLevel'];
+
+        if($securityLevel >= $this->securityLevel) {
+            return true;
+        }
+
+        return true;
+
+    }
+
 }

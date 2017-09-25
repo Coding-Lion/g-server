@@ -10,8 +10,29 @@ namespace gserver\controllers\frontend;
 
 use gserver\controllers\Controller;
 
-class Maintenance extends Controller
+final class Maintenance extends Controller
 {
+
+    public function getClass(): string {
+        return __CLASS__;
+    }
+
+    public function getName(): string {
+        return "Maintenance";
+    }
+
+    public function preDispatch(): bool {
+
+        $securityLevel = Gserver()->Session()->getUser()['account']['SecurityLevel'];
+
+        if($securityLevel >= $this->securityLevel) {
+            return true;
+        }
+
+        return true;
+
+    }
+
     public function indexAction(): bool {
         return true;
     }
