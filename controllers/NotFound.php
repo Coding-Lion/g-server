@@ -32,6 +32,7 @@ final class NotFound extends Controller
      * @return bool
      */
     public function preDispatch(): bool {
+
         $securityLevel = Gserver()->Session()->getUser()['account']['SecurityLevel'];
 
         if($securityLevel >= $this->securityLevel) {

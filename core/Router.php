@@ -330,4 +330,24 @@ final class Router
         }
 
     }
+
+    public function getRootLink(): string {
+        $protocol = $this->getProtocol();
+        return $protocol . $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL'];
+    }
+
+    public function getMediaLink(): string {
+        return $this->getRootLink() . 'media/';
+    }
+
+    private function getProtocol(): string {
+
+        if (isset($_SERVER['HTTPS'])) {
+            return  'https://';
+        } else {
+            return 'http://';
+        }
+
+    }
+
 }
