@@ -18,6 +18,7 @@ class Index extends Controller
      */
     public function __construct() {
         $this->securityLevel = SECURITY_LEVEL['Game_Master'];
+        $this->redirect = true;
     }
 
     /**
@@ -41,12 +42,23 @@ class Index extends Controller
 
         $securityLevel = Gserver()->Session()->getUser()['account']['SecurityLevel'];
 
-        if($securityLevel >= $this->securityLevel) {
+        if ($securityLevel >= $this->securityLevel) {
             return true;
         }
 
-        return true;
+        if ($this->redirect) {
+            $Router = Gserver()->Router();
+            header('Location: ' . $Router->getRootLink() . $Router->getLocale() . '/' . $Router->getModule() .
+                '/auth');
+            exit();
+        }
 
+        return false;
+
+    }
+
+    public function indexAction(): bool {
+        return true;
     }
 
 }

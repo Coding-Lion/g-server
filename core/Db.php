@@ -84,7 +84,7 @@ final class Db
                 $config = DB_FRONTEND_CONFIG;
                 break;
             case "backend":
-                $config = DB_BACKEND_CONFIG;
+                $config = DB_FRONTEND_CONFIG;
                 break;
             default:
                 $config = DB_FRONTEND_CONFIG;

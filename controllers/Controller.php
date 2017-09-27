@@ -22,6 +22,11 @@ abstract class Controller
     protected $rendering = true;
 
     /**
+     * @var bool
+     */
+    protected $redirect = false;
+
+    /**
      * @return string
      */
     abstract function getName(): string;

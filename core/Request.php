@@ -188,7 +188,7 @@ final class Request
 
         if($header === false || $file === false || $footer === false) {
             // Failure
-            die("A template file is missing");
+            die(var_dump($header,$file,$footer));
         }
 
         $this->toInclude = [$header,$file,$footer];

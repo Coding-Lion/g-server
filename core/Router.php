@@ -174,9 +174,9 @@ final class Router
             $controller = "Index";
         } else {
             if ($this->module === "backend") {
-                $controller = $parts[2];
+                $controller = empty($parts[2]) ? 'Index' : $parts[2];
             } else {
-                $controller = $parts[1];
+                $controller = empty($parts[1]) ? 'Index' : $parts[1];
             }
         }
 
@@ -189,7 +189,9 @@ final class Router
             require_once($file);
 
             // TODO: There is a better solution for this
-            require_once(realpath($path . $modulePath . 'Maintenance' . '.php'));
+            if ($this->module !== "backend") {
+                require_once(realpath($path . $modulePath . 'Maintenance' . '.php'));
+            }
 
         } else {
             $controller = 'NotFound';
@@ -333,7 +335,7 @@ final class Router
 
     public function getRootLink(): string {
         $protocol = $this->getProtocol();
-        return $protocol . $_SERVER['SERVER_NAME'] . $_SERVER['REDIRECT_URL'];
+        return $protocol . $_SERVER['SERVER_NAME'] . '/g-server/';
     }
 
     public function getMediaLink(): string {
