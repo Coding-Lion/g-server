@@ -13,12 +13,24 @@ namespace gserver\repositorities;
 
 final class RepositoryManager
 {
+    /**
+     * @var RepositoryManager|null
+     */
     public static $Instance = NULL;
 
+    /**
+     * @var array
+     */
     private $loadedRepositorities = [];
 
+    /**
+     * @var obejct|null
+     */
     private $Repository = NULL;
 
+    /**
+     * RepositoryManager constructor.
+     */
     private function __construct() {}
 
     /**
@@ -34,8 +46,7 @@ final class RepositoryManager
     public static function getInstance(string $repository) : RepositoryManager {
 
         if (self::$Instance === NULL) {
-            $RepositoryManager = new RepositoryManager();
-            self::$Instance = $RepositoryManager;
+            self::$Instance = new RepositoryManager();
         }
 
         if(!in_array($repository, self::$Instance->loadedRepositorities)) {
@@ -49,21 +60,33 @@ final class RepositoryManager
 
     }
 
+    /**
+     * @param string $repository
+     *
+     * @return mixed
+     */
     private function loadNewRepository(string $repository) {
 
-        require_once($repository . DIRECTORY_SEPARATOR . 'Repository.php');
-
+        require_once(strtoupper($repository.'.php'));
         $class = $this->getClass($repository);
 
         return $class::getInstance();
 
     }
 
+    /**
+     * @return object|null
+     */
     public function getRepository() {
         return $this->Repository;
     }
 
+    /**
+     * @param string $repository
+     *
+     * @return string
+     */
     private function getClass(string $repository): string {
-        return __NAMESPACE__ . DIRECTORY_SEPARATOR . strtolower($repository) . DIRECTORY_SEPARATOR . 'Repository';
+        return __NAMESPACE__ . DIRECTORY_SEPARATOR . strtolower($repository);
     }
 }

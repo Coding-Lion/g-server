@@ -11,12 +11,21 @@ declare(strict_types=1);
 namespace gserver\repositorities\session;
 
 
-class Repository
+class Session
 {
+    /**
+     * @var Session|null
+     */
     public static $Instance = NULL;
 
+    /**
+     * @var array
+     */
     private $loadedTables = [];
 
+    /**
+     * Session constructor.
+     */
     private function __construct() {}
 
     /**
@@ -24,17 +33,24 @@ class Repository
      */
     private function __clone() {}
 
-    public static function getInstance() : Repository {
+    /**
+     * @return Session
+     */
+    public static function getInstance() : Session {
 
         if (self::$Instance === NULL) {
-            $Repository = new Repository();
-            self::$Instance = $Repository;
+            self::$Instance = new Session();
         }
 
         return self::$Instance;
 
     }
 
+    /**
+     * @param string $tablename
+     *
+     * @return mixed
+     */
     public function getTable(string $tablename) {
 
         if (!in_array($tablename,$this->loadedTables)) {

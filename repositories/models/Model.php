@@ -6,20 +6,17 @@
  * Time: 15:04
  */
 
-namespace gserver\repositorities;
+declare(strict_types=1);
+
+namespace gserver\repositories\models;
 
 
 abstract class Table
 {
     /**
-     * @var Table|null
-     */
-    private static $Instance = NULL;
-
-    /**
      * @var Db|null
      */
-    private $Db = NULL;
+    protected $Db = NULL;
 
     /**
      * Table constructor.
@@ -41,7 +38,7 @@ abstract class Table
      *
      * @return array
      */
-    public function getDataset(): array {
+    public function getDataSet(): array {
 
         $Reflection = new \ReflectionClass($this);
 
@@ -68,11 +65,7 @@ abstract class Table
      *
      * @param array $params
      */
-    public function setDataset(array $params = []): void {
-
-        if ($this->Db === NULL) {
-            $this->Db = Gserver()->Db();
-        }
+    public function setDataSet(array $params = []): void {
 
         $Reflection = new \ReflectionClass($this);
         $table = $Reflection->getShortName();
@@ -116,10 +109,15 @@ abstract class Table
 
             foreach ($row as $key => $value) {
                 $function = 'set' . ucfirst(array_shift($vars));
+
+                if(is_numeric($value)) {
+                    $value = (int)$value;
+                }
+
                 $this->$function($value);
             }
 
-            // Is needed for relationships with other tables
+            // Is needed for relationships with other models
             if (!empty($vars)) {
 
                 foreach($vars as $var) {
@@ -136,10 +134,6 @@ abstract class Table
     }
 
     public function getAll(array $params = []): array {
-
-        if ($this->Db === NULL) {
-            $this->Db = Gserver()->Db();
-        }
 
         $where = '';
 
