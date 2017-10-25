@@ -11,8 +11,12 @@ declare(strict_types=1);
 namespace gserver\controllers;
 
 
-final class NotFound extends Controller
+final class NotFound
 {
+    /**
+     * @var bool
+     */
+    protected $rendering = true;
 
     /**
      * @return string
@@ -32,15 +36,7 @@ final class NotFound extends Controller
      * @return bool
      */
     public function preDispatch(): bool {
-
-        $securityLevel = Gserver()->Session()->getUser()['account']['SecurityLevel'];
-
-        if($securityLevel >= $this->securityLevel) {
-            return true;
-        }
-
-        return false;
-
+        return true;
     }
 
     /**
@@ -55,5 +51,20 @@ final class NotFound extends Controller
      */
     public function forbiddenAction(): bool {
         return true;
+    }
+
+    /**
+     * @param $toInclude
+     */
+    public function loadTemplate(array $toInclude): void {
+
+        if ($this->rendering) {
+
+            foreach($toInclude as $file) {
+                require_once $file;
+            }
+
+        }
+
     }
 }
