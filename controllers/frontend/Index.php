@@ -9,11 +9,8 @@
 namespace gserver\controllers\frontend;
 
 
-use gserver\controllers\Controller;
-
 final class Index extends Controller
 {
-
     /**
      * @return string
      */

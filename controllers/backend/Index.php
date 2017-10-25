@@ -8,7 +8,6 @@
 
 namespace gserver\controllers\backend;
 
-use gserver\controllers\Controller;
 
 class Index extends Controller
 {
@@ -17,7 +16,6 @@ class Index extends Controller
      * Index constructor.
      */
     public function __construct() {
-        $this->securityLevel = SECURITY_LEVEL['Game_Master'];
         $this->redirect = true;
     }
 

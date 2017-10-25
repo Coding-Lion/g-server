@@ -8,7 +8,6 @@
 
 namespace gserver\controllers\frontend;
 
-use gserver\controllers\Controller;
 
 final class Maintenance extends Controller
 {
