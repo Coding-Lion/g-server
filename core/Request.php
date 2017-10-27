@@ -11,11 +11,8 @@ declare(strict_types=1);
 namespace gserver\core;
 
 
-use gserver\controllers\NotFound;
-
 final class Request
 {
-
     /**
      * @var Request|null
      */
@@ -34,7 +31,7 @@ final class Request
     /**
      * @var string
      */
-    protected $action = '';
+    protected $action = 'index';
 
     /**
      * @var array
@@ -56,7 +53,6 @@ final class Request
      */
     private function __construct() {
         $this->setRequest();
-        $this->validatePostAndGet();
     }
 
     /**
@@ -72,8 +68,7 @@ final class Request
     public static function getInstance() : Request {
 
         if (self::$Instance === NULL) {
-            $Request = new Request();
-            self::$Instance = $Request;
+            self::$Instance = new Request();
         }
 
         return self::$Instance;
@@ -85,35 +80,42 @@ final class Request
      */
     private function setRequest(): void {
 
-        $Router = Gserver()->Router();
+        $this->module = strpos($_SERVER['REDIRECT_URL'], 'backend') !== false ? 'backend' : 'frontend';
 
-        $this->module = $Router->getModule();
+        $controllersPath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers');
+        require_once $controllersPath . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR . 'Controller.php';
+        require_once $controllersPath . DIRECTORY_SEPARATOR . 'NotFound.php';
 
-        $namespace = 'gserver\\controllers\\' . $this->module . '\\';
+        $controllerNamespace = '\\gserver\\controllers\\';
+        $namespace = $controllerNamespace . $this->module . '\\';
+        $defaultClass = $controllerNamespace . $this->module . '\\Index';
 
-        $controller = $namespace . $Router->getController();
-        $action = $Router->getAction();
-
-        if(Gserver()->Config()->getConfig('core')['web_maintenance'] === "yes") {
-            $controller = $namespace . 'Maintenance';
-            $action = 'index';
+        if (empty($_SERVER['REDIRECT_URL']) || $this->module === $_SERVER['REDIRECT_URL']) {
+            require_once $controllersPath . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR . 'Index.php';
+            $this->Controller = new $defaultClass();
         }
+        else {
 
-        //$this->allowedParams = CONTROLLER_PARAMETER[$controller];
+            $Router = Gserver()->Router();
 
-        if (empty($this->allowedParams)) {
-            // Failure
-        }
+            $controller = $Router->getController();
+            $controller === 'NotFound' ?
+                $controller = $controllerNamespace . $controller :
+                $controller = $namespace . $controller;
 
-        $this->Controller = new $controller();
-        $this->action = $action;
-        $this->params = $Router->getParams();
+            $this->Controller = new $controller();
 
-        if(!in_array($action . 'Action', get_class_methods($controller))) {
+            if(!in_array($this->action . 'Action', get_class_methods($controller))) {
+                $controller = $controllerNamespace . 'NotFound';
+                $this->Controller = new $controller;
+            }
+            else {
 
-            require_once('..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . 'NotFound.php');
-            $this->Controller = new NotFound();
-            $this->action = 'indexAction';
+                $this->action = $Router->getAction();
+                $this->params = $Router->getParams();
+                $this->validatePostAndGet();
+
+            }
 
         }
 
@@ -126,7 +128,7 @@ final class Request
      */
     private function validatePostAndGet(): void {
 
-        $globals = array_merge($this->params,$_POST);
+        $globals = array_merge($this->params, $_POST);
 
         $params = [];
 
@@ -140,55 +142,45 @@ final class Request
     }
 
     /**
-     * Dispatch the controller action or load and dispatch the NotFound controller
+     * Dispatch the controller action
      */
     public function dispatchController(): void {
 
         $action = $this->action . 'Action';
 
-        if (!in_array($action,get_class_methods($this->Controller->getClass()))) {
-            // Failure
-            $result = false;
-        } else {
-            $result = $this->Controller->$action($this->params);
-        }
-
         $securityCheck = $this->Controller->preDispatch();
 
-        // TODO: implement access denied controller?
-        if ($result === false || $securityCheck === false) {
-
-            $file = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers' .
-                DIRECTORY_SEPARATOR . 'NotFound.php');
-
-            require_once($file);
-
+        if ($securityCheck === false) {
             $this->Controller = new NotFound();
-            $securityCheck === false ? $this->Controller->forbiddenAction() : $this->Controller->indexAction();
-
+            $action = 'forbiddenAction';
         }
 
+        $this->Controller->$action($this->params);
         $this->setToInclude();
 
     }
 
     /**
-     * Set all files were required to include
+     * Set required files for output
      */
     private function setToInclude(): void {
 
-        $basepath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR .
+        $basePath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR .
             $this->module . DIRECTORY_SEPARATOR;
 
-        $header = realpath($basepath . 'header.php');
-        $footer = realpath($basepath . 'footer.php');
+        $header = realpath($basePath . 'header.php');
+        $footer = realpath($basePath . 'footer.php');
 
-        $controllerPath = $basepath . strtolower($this->Controller->getName()) . DIRECTORY_SEPARATOR;
+        if($this->Controller->getName() === 'NotFound') {
+            $basePath = str_replace(DIRECTORY_SEPARATOR.$this->module, '',$basePath);
+        }
+
+        $controllerPath = $basePath . strtolower($this->Controller->getName()) . DIRECTORY_SEPARATOR;
         $file = realpath($controllerPath . $this->action . '.php');
 
         if($header === false || $file === false || $footer === false) {
             // Failure
-            die(var_dump($header,$file,$footer));
+            die(var_dump($header,$controllerPath . $this->action,$footer));
         }
 
         $this->toInclude = [$header,$file,$footer];
