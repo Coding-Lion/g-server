@@ -36,8 +36,7 @@ final class Gserver
     public static function getInstance(): Gserver {
 
         if (self::$Instance === NULL) {
-            $Gserver = new Gserver();
-            self::$Instance = $Gserver;
+            self::$Instance = new Gserver();
         }
 
         return self::$Instance;
@@ -66,10 +65,7 @@ final class Gserver
                 $Instance = $class::getInstance($param);
             } elseif(is_array($param) && array_key_exists('namespace',$param)) {
 
-                // TODO: find another solution with more performance
-                $Reflection = new \ReflectionClass($this);
-
-                $namespace = strtolower($Reflection->getShortName()) . DIRECTORY_SEPARATOR . array_shift($param);
+                $namespace = 'gserver' . DIRECTORY_SEPARATOR . array_shift($param);
                 $class = $namespace . DIRECTORY_SEPARATOR . $name;
 
                 if(empty($param)) {
