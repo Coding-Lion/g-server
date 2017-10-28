@@ -8,7 +8,7 @@
 
 declare(strict_types=1);
 
-namespace gserver\repositorities;
+namespace gserver\repositories;
 
 
 final class RepositoryManager
@@ -21,7 +21,7 @@ final class RepositoryManager
     /**
      * @var array
      */
-    private $loadedRepositorities = [];
+    private $loadedRepositories = [];
 
     /**
      * @var obejct|null
@@ -49,9 +49,9 @@ final class RepositoryManager
             self::$Instance = new RepositoryManager();
         }
 
-        if(!in_array($repository, self::$Instance->loadedRepositorities)) {
+        if(!in_array($repository, self::$Instance->loadedRepositories)) {
             self::$Instance->Repository = self::$Instance->loadNewRepository($repository);
-            array_push(self::$Instance->loadedRepositorities,$repository);
+            array_push(self::$Instance->loadedRepositories,$repository);
         } else {
             self::$Instance->Repository = self::$Instance->getClass($repository)::getInstance();
         }
@@ -67,7 +67,7 @@ final class RepositoryManager
      */
     private function loadNewRepository(string $repository) {
 
-        require_once(strtoupper($repository.'.php'));
+        require_once realpath(__DIR__ . DIRECTORY_SEPARATOR . $repository.'.php');
         $class = $this->getClass($repository);
 
         return $class::getInstance();
@@ -87,6 +87,6 @@ final class RepositoryManager
      * @return string
      */
     private function getClass(string $repository): string {
-        return __NAMESPACE__ . DIRECTORY_SEPARATOR . strtolower($repository);
+        return __NAMESPACE__ . DIRECTORY_SEPARATOR . $repository;
     }
 }

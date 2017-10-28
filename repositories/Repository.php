@@ -6,11 +6,16 @@
  * Time: 16:26
  */
 
-namespace gserver\repositorities;
+namespace gserver\repositories;
 
 
 abstract class Repository
 {
+    /**
+     * @var array
+     */
+    private $loadedModels = [];
+
     /**
      * @param string $tableName
      *
@@ -18,15 +23,19 @@ abstract class Repository
      */
     public function getTable(string $tableName) {
 
-        if (!in_array($tableName,$this->loadedTables)) {
+        $modelPartPath = DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR;
 
-            $file = realpath(__DIR__ . DIRECTORY_SEPARATOR . 'tables' . DIRECTORY_SEPARATOR . $tableName . '.php');
-            require_once($file);
-            array_push($this->loadedTables, $tableName);
+        require_once realpath(__DIR__ . $modelPartPath . 'Model.php');
+
+        if (!in_array($tableName,$this->loadedModels)) {
+
+            $file = realpath(__DIR__ . $modelPartPath . $tableName . '.php');
+            require_once $file;
+            array_push($this->loadedModels, $tableName);
 
         }
 
-        $table = __NAMESPACE__ . DIRECTORY_SEPARATOR . 'tables' . DIRECTORY_SEPARATOR . $tableName;
+        $table = __NAMESPACE__ . $modelPartPath . $tableName;
 
         return $table::getInstance();
 
