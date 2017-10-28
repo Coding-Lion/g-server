@@ -29,8 +29,8 @@ $rootLink = $Router->getRootLink();
  * @var gserver\core\TextModule
  */
 $TextModule = Gserver()->TextModule();
-$textblocks = $TextModule->textblocks[$this->getName()];
-$globals = $TextModule->textblocks['global'];
+$textBlocks = @$TextModule->textBlocks[$this->getName()];
+$globals = $TextModule->textBlocks['global'];
 
 /**
  * @var array

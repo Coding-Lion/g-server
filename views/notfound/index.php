@@ -5,3 +5,6 @@
  * Date: 24.10.2017
  * Time: 15:11
  */
+
+echo $textBlocks['headline'];
+?>

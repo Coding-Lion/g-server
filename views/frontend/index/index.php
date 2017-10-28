@@ -11,21 +11,21 @@
 <?php
 
     if ($core_config['server'] === "private") {
-        echo $textblocks['access_headline_private'];
+        echo $textBlocks['access_headline_private'];
     } else {
-        echo $textblocks['access_headline_public'];
+        echo $textBlocks['access_headline_public'];
     }
 
     if ($core_config['web_register_allow'] === "yes") {
-        require_once("register.php");
+        require_once "register.php";
     } else {
-        echo $textblocks['register_is_not_allow'];
+        echo $textBlocks['register_is_not_allow'];
     }
 
     if ($core_config['web_login_allow'] === "yes") {
-        require_once("login.php");
+        require_once "login.php";
     } else {
-        echo $textblocks['login_is_not_allow'];
+        echo $textBlocks['login_is_not_allow'];
     }
 
 ?>
