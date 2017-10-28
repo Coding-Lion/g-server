@@ -28,7 +28,26 @@ final class Session
     /**
      * Session constructor.
      */
-    private function __construct() {}
+    private function __construct() {
+
+        $this->Repository = Gserver()->RepositoryManager(['namespace' => 'repositories',
+            'repository' => 'Session'])->getRepository();
+
+        session_start();
+
+        $Table = $this->Repository->getTable('user');
+
+        $Table->setDataSet(['sessionId', session_id()]);
+
+        $user = $Table->getDataSet();
+
+        if ($user['id'] === 0) {
+            $user['account']['SecurityLevel'] = -1;
+        }
+
+        $this->setUser($user);
+
+    }
 
     /**
      * Singleton pattern don't allow clone
@@ -43,43 +62,11 @@ final class Session
     public static function getInstance(): Session {
 
         if (self::$Instance === NULL) {
-
-            $Session = new Session();
-
-            $Reflection = new \ReflectionClass($Session);
-
-            $Session->Repository = Gserver()->RepositoryManager(
-                ['namespace' => 'repositorities',
-                    'repositority' => $Reflection->getShortName()]
-            )->getRepository();
-
-            $Session->loadSession();
-            self::$Instance = $Session;
-
+            self::$Instance = new Session();
         }
 
         return self::$Instance;
 
-    }
-
-    /**
-     * Load the session for the current user with account details which includes his access permission
-     */
-    private function loadSession(): void {
-
-        session_start();
-
-        $Table = $this->Repository->getTable('user');
-
-        $Table->setDataset(['sessionId', session_id()]);
-
-        $user = $Table->getDataset();
-
-        if ($user['id'] === 0) {
-            $user['account']['SecurityLevel'] = -1;
-        }
-
-        $this->setUser($user);
     }
 
     /**
