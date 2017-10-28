@@ -6,14 +6,15 @@
  * Time: 19:56
  */
 
-namespace gserver\repositorities\textmodule\tables;
+declare(strict_types=1);
 
-use gserver\repositorities\Table;
+namespace gserver\repositories\models;
+
 
 /**
  * Table text_module
  */
-class text_module extends Table
+class text_module extends Model
 {
     /**
      * @var text_module|null
@@ -23,7 +24,7 @@ class text_module extends Table
     /**
      * @var Db|null
      */
-    private $Db = NULL;
+    protected $Db = NULL;
 
     /**
      * @var int
@@ -63,9 +64,7 @@ class text_module extends Table
     /**
      * text_module constructor.
      */
-    private function __construct() {
-        $this->Db = Gserver()->Db();
-    }
+    private function __construct() {}
 
     /**
      * @return text_module|null
@@ -74,6 +73,7 @@ class text_module extends Table
 
         if (self::$Instance === NULL) {
             self::$Instance = new text_module();
+            self::$Instance->Db = Gserver()->Db();
         }
 
         return self::$Instance;

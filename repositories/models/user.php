@@ -6,14 +6,15 @@
  * Time: 15:12
  */
 
-namespace gserver\repositorities\session\tables;
+declare(strict_types=1);
 
-use gserver\repositorities\Table;
+namespace gserver\repositories\models;
+
 
 /**
  * Table_prefix_user
  */
-class user extends Table
+class user extends Model
 {
     /**
      * @var user|null
@@ -23,7 +24,7 @@ class user extends Table
     /**
      * @var Db|null
      */
-    private $Db = NULL;
+    protected $Db = NULL;
 
     /**
      * @var int
@@ -69,9 +70,7 @@ class user extends Table
     /**
      * user constructor.
      */
-    private function __construct() {
-        $this->Db = Gserver()->Db();
-    }
+    private function __construct() {}
 
     /**
      * @return user|null
@@ -80,6 +79,7 @@ class user extends Table
 
         if (self::$Instance === NULL) {
             self::$Instance = new user();
+            self::$Instance->Db = Gserver()->Db();
         }
 
         return self::$Instance;

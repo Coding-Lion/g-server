@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace gserver\repositories\models;
 
 
-abstract class Table
+abstract class Model
 {
     /**
      * @var Db|null
