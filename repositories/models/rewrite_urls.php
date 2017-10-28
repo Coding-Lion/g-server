@@ -8,15 +8,13 @@
 
 declare(strict_types=1);
 
-namespace gserver\repositorities\router\tables;
+namespace gserver\repositories\models;
 
-
-use gserver\repositorities\Table;
 
 /**
  * Table prefix_rewrite_urls
  */
-class rewrite_urls extends Table
+class rewrite_urls extends Model
 {
     /**
      * @var rewrite_urls|null
@@ -26,7 +24,7 @@ class rewrite_urls extends Table
     /**
      * @var Db|null
      */
-    private $Db = NULL;
+    protected $Db = NULL;
 
     /**
      * @var int
@@ -70,9 +68,7 @@ class rewrite_urls extends Table
     /**
      * rewrite_urls constructor.
      */
-    private function __construct() {
-        $this->Db = Gserver()->Db();
-    }
+    private function __construct() {}
 
     /**
      * @return rewrite_urls|null
@@ -81,6 +77,7 @@ class rewrite_urls extends Table
 
         if (self::$Instance === NULL) {
             self::$Instance = new rewrite_urls();
+            self::$Instance->Db = Gserver()->Db();
         }
 
         return self::$Instance;

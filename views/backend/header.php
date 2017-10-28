@@ -29,14 +29,13 @@ $rootLink = $Router->getRootLink();
  * @var gserver\core\TextModule
  */
 $TextModule = Gserver()->TextModule();
-$textblocks = @$TextModule->textblocks[$this->getName()];
-$globals = $TextModule->textblocks['global'];
+$textBlocks = @$TextModule->textBlocks[$this->getName()];
+$globals = $TextModule->textBlocks['global'];
 
 /**
  * @var array
  */
 $params = Gserver()->Request()->getParams();
-
 ?>
 
 <!DOCTYPE html>
@@ -49,12 +48,71 @@ $params = Gserver()->Request()->getParams();
         <title><?=$globals['servername']?> | <?=$globals[$this->getName()]?></title>
 
         <link rel="shortcut icon" href="<?=$mediaLink?>images/icons/favicon.ico" type="image/x-icon">
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/classic/theme-classic/resources/theme-classic-all.css" rel="stylesheet" />
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script>
+        <script type="text/javascript">
+            Ext.onReady(function () {
+                Ext.create('Ext.window.Window', {
+                    <?php if($this->getName() !== 'NotFound'): ?>
+                    id: 'login_form',
+                    title: '<?=$globals['servername']?> | <?=$globals[$this->getName()]?>',
+                    titleAlign: 'center',
+                    height: 200,
+                    width: 400,
+                    layout: 'auto',
+                    items: [{
+                        xtype: 'textfield',
+                        name: 'name',
+                        fieldLabel: '<?=$textBlocks['username']?>',
+                        margin: '30 0 0 60',
+                        allowBlank: false
+
+                    }, {
+                        xtype: 'textfield',
+                        name: 'password',
+                        inputType: 'password',
+                        fieldLabel: '<?=$textBlocks['password']?>',
+                        margin: '20 0 0 60',
+                        allowBlank: false
+                    }],
+                    buttons: [{
+                        xtype:'splitbutton',
+                        text: '<?=$globals['language']?>',
+                        menu: [{
+                            icon: '<?=$mediaLink?>images/icons/de.png',text: 'Deutsch', href: '<?=$rootLink?>de/backend'
+                        }, {
+                            icon: '<?=$mediaLink?>images/icons/en.png',text: 'English', href: '<?=$rootLink?>en/backend'
+                        }]
+                    }, {
+                        text: 'Login',
+                        formBind: true,
+                    }]
+                    <?php else: ?>
+                    id: 'not_found',
+                    title: '<?=$globals['servername']?> | <?=$globals[$this->getName()]?>',
+                    titleAlign: 'center',
+                    height: 110,
+                    width: 400,
+                    layout: 'auto',
+                    html: '<?=$textBlocks['headline']?>',
+                    buttons: [{
+                        xtype:'splitbutton',
+                        text: '<?=$globals['language']?>',
+                        menu: [{
+                            icon: '<?=$mediaLink?>images/icons/de.png',text: 'Deutsch', href: '<?=$rootLink?>de/backend'
+                        }, {
+                            icon: '<?=$mediaLink?>images/icons/en.png',text: 'English', href: '<?=$rootLink?>en/backend'
+                        }]
+                    }, {
+                        text: 'zur Startseite',
+                        href: '<?=$rootLink.$locale?>/backend',
+                    }]
+                    <?php endif; ?>
+                }).show();
+            });
+        </script>
+
     </head>
-    <body class="bg-dark">
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-        <img src="<?=$mediaLink?>images/icons/g-server_32.png" />
-        <a class="navbar-brand" href="<?=$rootLink?>" title="<?=$globals['servername']?>" style="margin-bottom:6px; padding-left:4px;"><?=$globals['servername']?></a>
-    </nav>
-    <div class="container" style="margin-top:70px; text-align:center; color:#FFF;">
+    <body style="background-color: #343a40 !important">

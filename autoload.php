@@ -6,7 +6,7 @@
  * Time: 10:51
  */
 
-$directories = ['configs', 'core', 'repositorities'];
+$directories = ['configs', 'core', 'repositories'];
 
 /**
  * Load all files in the given directories
@@ -21,7 +21,7 @@ foreach($directories as $directory) {
             continue;
         }
 
-        require_once($directory . DIRECTORY_SEPARATOR . $entry);
+        require_once $directory . DIRECTORY_SEPARATOR . $entry;
 
     }
 }

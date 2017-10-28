@@ -8,10 +8,16 @@
 
 namespace gserver\controllers\backend;
 
-use gserver\controllers\Controller;
 
 class Auth extends Controller
 {
+
+    /**
+     * Index constructor.
+     */
+    public function __construct() {
+        $this->securityLevel = SECURITY_LEVEL['Anonymous'];
+    }
 
     /**
      * @return string
@@ -42,4 +48,7 @@ class Auth extends Controller
 
     }
 
+    public function indexAction(): bool {
+        return true;
+    }
 }

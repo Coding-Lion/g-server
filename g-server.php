@@ -11,7 +11,33 @@ header('Content-Type: text/html; charset=utf-8');
 /**
  * Load all necessary files
  */
-require_once('autoload.php');
+require_once 'autoload.php';
+
+$module = strpos($_SERVER['REQUEST_URI'], 'backend') !== false ? 'backend' : 'frontend';
+
+Gserver()->Db($module);
+
+$config = Gserver()->Config()->getConfig('core');
+
+//<editor-fold desc="Preparing requested uri"
+
+$fileParts = explode(DIRECTORY_SEPARATOR, __FILE__);
+$fName = end($fileParts);
+$search = str_replace($fName, '', $_SERVER['SCRIPT_NAME']);
+$_SERVER['SUBDIRECTORY'] = $search;
+
+// No need for the directory in the url where the server is located
+$uri = $_SERVER['REDIRECT_URL'];
+$uri = strtolower(str_replace($search, '', $uri));
+$_SERVER['REDIRECT_URL'] = substr($uri, -1) === '/' ? substr($uri, 0, -1) : $uri;
+
+//</editor-fold>
+
+// Check for maintenance and redirect if needed
+if ($config['web_maintenance'] === 'yes' && $_SERVER['REDIRECT_URL'] !== 'maintenance') {
+    header('Location: localhost/g-server/maintenance');
+    exit();
+}
 
 /**
  * @var gserver\core\Request

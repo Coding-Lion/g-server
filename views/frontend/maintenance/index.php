@@ -8,6 +8,6 @@
 
 ?>
 
-<?=$textblocks['headline']?>
-<?=$textblocks['maintenance_info']?>
-<?=$textblocks['maintenance_scheduled']?>
+<?=$textBlocks['headline']?>
+<?=$textBlocks['maintenance_info']?>
+<?=$textBlocks['maintenance_scheduled']?>

@@ -6,15 +6,15 @@
  * Time: 22:41
  */
 
-namespace gserver\repositorities\router\tables;
+declare(strict_types=1);
 
+namespace gserver\repositories\models;
 
-use gserver\repositorities\Table;
 
 /**
  * Table prefix_locale
  */
-class locale extends Table
+class locale extends Model
 {
     /**
      * @var rewrite_urls|null
@@ -24,7 +24,7 @@ class locale extends Table
     /**
      * @var Db|null
      */
-    private $Db = NULL;
+    protected $Db = NULL;
 
     /**
      * @var int
@@ -51,9 +51,7 @@ class locale extends Table
     /**
      * locale constructor.
      */
-    private function __construct() {
-        $this->Db = Gserver()->Db();
-    }
+    private function __construct() {}
 
     /**
      * @return locale|null
@@ -62,6 +60,7 @@ class locale extends Table
 
         if (self::$Instance === NULL) {
             self::$Instance = new locale();
+            self::$Instance->Db = Gserver()->Db();
         }
 
         return self::$Instance;

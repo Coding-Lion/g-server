@@ -6,6 +6,8 @@
  * Time: 03:45
  */
 
+declare(strict_types=1);
+
 namespace gserver\core;
 
 
@@ -21,15 +23,50 @@ final class TextModule
      */
     protected $Repository = NULL;
 
-    public $textblocks = [];
+    /**
+     * @var string
+     */
+    public $locale = '';
 
+    /**
+     * @var array
+     */
+    public $textBlocks = [];
 
+    /**
+     * @var string
+     */
     private $controller = '';
 
     /**
      * TextModule constructor.
      */
-    private function __construct() {}
+    private function __construct() {
+
+        $this->Repository = Gserver()->RepositoryManager(['namespace' => 'repositories',
+                'repository' => 'TextModule'])->getRepository();
+
+        $Table = $this->Repository->getTable('text_module');
+
+        $Router = Gserver()->Router();
+        $Request = Gserver()->Request();
+
+        $this->locale = $Router->getLocale();
+
+        $this->controller = $Request->getController()->getName();
+        $action = $Request->getAction();
+
+        $namespace = $this->locale . '/' . $Router->getModule() . '/' . $this->controller . '/' . $action;
+
+        $blocks = $Table->getAll(['namespace' => $namespace]);
+
+        $this->setBlocks($blocks);
+
+        $blocks = $Table->getAll(['namespace' => $this->locale .'/global']);
+
+        $this->setBlocks($blocks);
+
+    }
 
     /**
      * Singleton pattern don't allow clone
@@ -44,58 +81,28 @@ final class TextModule
     public static function getInstance(): TextModule {
 
         if (self::$Instance === NULL) {
-            $TextModule = new TextModule();
-
-            $Reflection = new \ReflectionClass($TextModule);
-
-            $TextModule->Repository = Gserver()->RepositoryManager(
-                ['namespace' => 'repositorities',
-                    'repositority' => $Reflection->getShortName()]
-            )->getRepository();
-
-            $TextModule->loadRequestedTextBlocks();
-
-            self::$Instance = $TextModule;
+            self::$Instance = new TextModule();
         }
 
         return self::$Instance;
 
     }
 
-    private function loadRequestedTextBlocks(): void {
-
-        $Table = $this->Repository->getTable('text_module');
-
-        $Router = Gserver()->Router();
-
-        $Request = Gserver()->Request();
-
-        $this->controller = $Request->getController()->getName();
-        $action = $Request->getAction();
-
-        $namespace = $Router->getLocale().'/'.$Router->getModule().'/'.$this->controller.'/'.$action;
-
-        $blocks = $Table->getAll(['namespace' => $namespace]);
-
-        $this->setBlocks($blocks);
-
-        $blocks = $Table->getAll(['namespace' => $Router->getLocale().'/global']);
-
-        $this->setBlocks($blocks);
-    }
-
+    /**
+     * @param array $blocks
+     */
     private function setBlocks(array $blocks): void {
 
         if (!empty($blocks)) {
 
-            $namespace = $blocks[0]['namespace'] === "de/global" ? "global" : $this->controller;
+            $namespace = $blocks[0]['namespace'] === $this->locale . '/global' ? "global" : $this->controller;
 
             foreach($blocks as $block) {
 
                 $key = !empty($block['textNode']) ? $block['textNode'] : $block['areaNode'];
                 $value = !empty($block['textValue']) ? $block['textValue'] : $block['areaValue'];
 
-                $this->textblocks[$namespace][$key] = $value;
+                $this->textBlocks[$namespace][$key] = $value;
 
             }
 

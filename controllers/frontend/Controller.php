@@ -2,11 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: Saito88
- * Date: 14.09.2017
- * Time: 19:31
+ * Date: 27.09.2017
+ * Time: 13:25
  */
 
-namespace gserver\controllers;
+namespace gserver\controllers\frontend;
 
 
 abstract class Controller
@@ -44,12 +44,12 @@ abstract class Controller
     /**
      * @param $toInclude
      */
-    public function loadTemplate($toInclude): void {
+    public function loadTemplate(array $toInclude): void {
 
         if ($this->rendering) {
 
             foreach($toInclude as $file) {
-                require_once($file);
+                require_once $file;
             }
 
         }
