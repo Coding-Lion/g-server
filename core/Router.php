@@ -19,14 +19,14 @@ final class Router
     private static $Instance = NULL;
 
     /**
-     * @var bool|string
-     */
-    protected $rawLink = '';
-
-    /**
      * @var object|null
      */
     protected $Repository = NULL;
+
+    /**
+     * @var bool
+     */
+    protected $redirect = false;
 
     /**
      * @var string
@@ -58,42 +58,18 @@ final class Router
      */
     private function __construct() {
 
-        $uri = strtolower($_SERVER['REQUEST_URI']);
-        $rawLink = strpos($uri, '/') === 0 ? substr($uri,1) : $uri;
-        $rawLink = str_replace('g-server/', '', $rawLink);
-        $params = '';
+        $this->Repository = Gserver()->RepositoryManager(['namespace' => 'repositories',
+            'repository' => 'Router'])->getRepository();
 
-        if (strpos($rawLink, '?') === 1) {
+        $this->Repository->getTable('rewrite_urls')->getDataSet();
 
-            $parts = explode('?', $rawLink);
-            $this->rawLink = $parts[0];
-            $params = $parts[1];
+        if (!$this->isLinkMapped($_SERVER['REDIRECT_URL'])) {
 
-        } else {
-            $this->rawLink = $rawLink;
-        }
-
-        $this->setModule($rawLink);
-
-        // Sets the database connection
-        Gserver()->Db($this->module);
-
-        $Reflection = new \ReflectionClass($this);
-
-        $this->Repository = Gserver()->RepositoryManager(
-            ['namespace' => 'repositorities',
-            'repositority' => $Reflection->getShortName()]
-        )->getRepository();
-
-        $this->Repository->getTable('rewrite_urls')->getDataset();
-
-        if (!$this->isLinkMapped($rawLink)) {
-
-            $this->setLocale($rawLink);
-            $this->setController($rawLink);
-            $this->setAction($rawLink);
-            $this->setParams($params);
-
+            $this->setModule();
+            $this->setLocale();
+            $this->setController();
+            $this->setAction();
+            $this->params = $_GET;
         }
 
     }
@@ -111,8 +87,7 @@ final class Router
     public static function getInstance() : Router {
 
         if (self::$Instance === NULL) {
-            $Router = new Router();
-            self::$Instance = $Router;
+            self::$Instance = new Router();
         }
 
         return self::$Instance;
@@ -120,10 +95,10 @@ final class Router
     }
 
     /**
-     * @param string $link
+     * Set the module
      */
-    private function setModule(string $link): void {
-        $this->module = substr_count($link, 'backend') === 1 ? 'backend' : 'frontend';
+    private function setModule(): void {
+        $this->module = strpos($_SERVER['REDIRECT_URL'], 'backend') !== false ? 'backend' : 'frontend';
     }
 
     /**
@@ -134,19 +109,37 @@ final class Router
     }
 
     /**
-     * @param string $link
+     * Set the language
      */
-    private function setLocale(string $link): void {
+    private function setLocale(): void {
 
-        $locale = explode('/',$link);
-        $this->locale = array_shift($locale);
+        $locale = explode('/', $_SERVER['REDIRECT_URL']);
+
+        $oldLocale = array_shift($locale);
+
+        $this->locale = $oldLocale;
 
         if (!$this->localeExists()) {
 
-            $Table = $this->Repository->getTable('locale');
-            $Table->setDataset(['main','yes']);
+            $this->redirect = true;
 
-            $this->locale = strtolower($Table->getDataset()['iso2']);
+            $Table = $this->Repository->getTable('locale');
+            $Table->setDataSet(['main','yes']);
+
+            $this->locale = strtolower($Table->getDataSet()['iso2']);
+            $location = $_SERVER['SUBDIRECTORY'] . str_replace($oldLocale, $this->locale, $_SERVER['REDIRECT_URL']);
+
+            if(empty($oldLocale) && $location === $_SERVER['SUBDIRECTORY']) {
+                $location .= $this->locale;
+            }
+
+            if($this->module === 'backend') {
+                $localePath = '/'.$this->locale.'/';
+                $location = str_replace($localePath, $localePath.$this->module.'/',$location);
+            }
+
+            header('Location: ' . $location);
+            exit();
 
         }
 
@@ -161,41 +154,27 @@ final class Router
 
     /**
      * Includes the controller file and set the class name of the controller
-     *
-     * @param string $link
      */
-    private function setController(string $link): void {
+    private function setController(): void {
 
         $path = __DIR__ . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR;
         $modulePath = $this->module . DIRECTORY_SEPARATOR;
-        $parts = explode('/',$link);
+        $parts = explode('/',$_SERVER['REDIRECT_URL']);
 
-        if(empty($parts[0])) {
-            $controller = "Index";
-        } else {
-            if ($this->module === "backend") {
-                $controller = empty($parts[2]) ? 'Index' : $parts[2];
-            } else {
-                $controller = empty($parts[1]) ? 'Index' : $parts[1];
-            }
+        if ($this->module === "backend") {
+            $controller = empty($parts[2]) ? 'index' : $parts[2];
+        }
+        else {
+            $controller = empty($parts[1]) ? 'index' : $parts[1];
         }
 
         $file = realpath($path . $modulePath . $controller . '.php');
 
-        require_once($path . 'Controller.php');
-
-        if (file_exists($file)) {
-
-            require_once($file);
-
-            // TODO: There is a better solution for this
-            if ($this->module !== "backend") {
-                require_once(realpath($path . $modulePath . 'Maintenance' . '.php'));
-            }
-
-        } else {
+        if ($file) {
+            require_once $file;
+        }
+        else {
             $controller = 'NotFound';
-            require_once($path . 'NotFound.php');
         }
 
         $this->controller = ucfirst($controller);
@@ -210,28 +189,17 @@ final class Router
     }
 
     /**
-     * @param string $link
+     * Set the controller action
      */
-    private function setAction(string $link): void {
+    private function setAction(): void {
 
-        $parts = explode('/', $link);
+        $parts = explode('/', $_SERVER['REDIRECT_URL']);
 
         if ($this->module === 'backend') {
-
-            if (!empty($parts[3])) {
-                $this->action = explode('/', $link)[3];
-            }
-
-        } else {
-
-            if (!empty($parts[2])) {
-                $this->action = explode('/', $link)[2];
-            }
-
+            $this->action = empty($parts[3]) ? 'index' : $parts[3];
         }
-
-        if(empty($this->action)) {
-            $this->action = 'index';
+        else {
+            $this->action = empty($parts[3]) ? 'index' : $parts[3];
         }
 
     }
@@ -244,30 +212,16 @@ final class Router
     }
 
     /**
-     * Parse and set the params property
+     * Set the params property
      *
-     * @param string $paramString
+     * @param array $params
      */
-    private function setParams(string $paramString): void {
+    private function setParams(array $params): void {
 
-        $parts = explode('&', $paramString);
-
-        $params = [];
-
-        if(!empty($parts[0])) {
-            foreach ($parts as $part) {
-
-                $controllerParams = explode('=', $part);
-
-                $key = $controllerParams[0];
-                $value = $controllerParams[1];
-
-                $params[$key] = $value;
-
-            }
+        foreach ($params as $key => $param) {
+            $parts = explode('=', $param);
+            $this->params[$parts[0]] = $parts[1];
         }
-
-        $this->params = $params;
 
     }
 
@@ -286,70 +240,71 @@ final class Router
     private function localeExists(): bool {
 
         $Table = $this->Repository->getTable('locale');
-        $Table->setDataset(['iso2', $this->locale]);
+        $Table->setDataSet(['iso2', $this->locale]);
 
-        if ($Table->getDataset()['id'] === 0) {
-            return false;
-        } else {
+        if ($Table->getDataSet()['id'] !== 0) {
             return true;
+        } else {
+            return false;
         }
 
     }
 
     /**
+     * Check if the requested uri is linked
+     *
      * @return bool
      */
     public function isLinkMapped(): bool {
 
         $Table = $this->Repository->getTable('rewrite_urls');
-        $Table->setDataset(['link' => $this->rawLink]);
+        $Table->setDataSet(['link' => $_SERVER['REDIRECT_URL']]);
 
-        if ($Table->getDataset()['id'] === 0) {
-            return false;
-        } else {
+        $dataSet = $Table->getDataSet();
 
-            $dataset = $Table->getDataset();
+        if ($dataSet['id'] !== 0) {
 
-            $parts = explode('/', $dataset['intern']);
+            $parts = explode('/', $dataSet['intern']);
 
-            $this->locale = $dataset['iso2'];
+            $this->locale = $dataSet['iso2'];
             $this->module = array_shift($parts);
             $this->controller = array_shift($parts);
             $this->action = array_shift($parts);
 
-            if (!empty($parts)) {
+            $params = explode('?', $this->action);
 
-                if(count($parts) === 1) {
-                    $this->setParams($parts[0]);
-                } else {
-                    // Failure
-                }
-
+            if (count($params) > 1) {
+                $this->setParams(explode('&', $params[1]));
             }
 
             return true;
 
         }
+        else {
+            return false;
+        }
 
     }
 
+    /**
+     * @return string
+     */
     public function getRootLink(): string {
-        $protocol = $this->getProtocol();
-        return $protocol . $_SERVER['SERVER_NAME'] . '/g-server/';
+        return $this->getProtocol() . $_SERVER['SERVER_NAME'] . '/g-server/';
     }
 
+    /**
+     * @return string
+     */
     public function getMediaLink(): string {
         return $this->getRootLink() . 'media/';
     }
 
+    /**
+     * @return string
+     */
     private function getProtocol(): string {
-
-        if (isset($_SERVER['HTTPS'])) {
-            return  'https://';
-        } else {
-            return 'http://';
-        }
-
+        return isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
     }
 
 }
