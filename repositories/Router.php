@@ -8,20 +8,15 @@
 
 declare(strict_types=1);
 
-namespace gserver\repositorities\router;
+namespace gserver\repositories;
 
 
-class Router
+class Router extends Repository
 {
     /**
      * @var Router|null
      */
     public static $Instance = NULL;
-
-    /**
-     * @var array
-     */
-    private $loadedTables = [];
 
     /**
      * Router constructor.

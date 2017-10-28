@@ -8,20 +8,15 @@
 
 declare(strict_types=1);
 
-namespace gserver\repositorities\session;
+namespace gserver\repositories;
 
 
-class Session
+class Session extends Repository
 {
     /**
      * @var Session|null
      */
     public static $Instance = NULL;
-
-    /**
-     * @var array
-     */
-    private $loadedTables = [];
 
     /**
      * Session constructor.
@@ -46,20 +41,4 @@ class Session
 
     }
 
-    /**
-     * @param string $tablename
-     *
-     * @return mixed
-     */
-    public function getTable(string $tablename) {
-
-        if (!in_array($tablename,$this->loadedTables)) {
-            require_once('tables' . DIRECTORY_SEPARATOR . $tablename . '.php');
-        }
-
-        $table = __NAMESPACE__ . DIRECTORY_SEPARATOR . 'tables' . DIRECTORY_SEPARATOR . $tablename;
-
-        return $table::getInstance();
-
-    }
 }
