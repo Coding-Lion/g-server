@@ -64,6 +64,8 @@ abstract class Model
      * Set all class properties from a Db result
      *
      * @param array $params
+     *
+     * @throws \Exception
      */
     public function setDataSet(array $params = []): void {
 
@@ -75,7 +77,7 @@ abstract class Model
         } else {
 
             if (count($params) !== 2) {
-                // Failure
+                throw new \Exception('unequal then 2 params is not implemented yet');
             }
             else {
 
