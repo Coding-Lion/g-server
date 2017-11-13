@@ -17,7 +17,17 @@ $module = strpos($_SERVER['REQUEST_URI'], 'backend') !== false ? 'backend' : 'fr
 
 Gserver()->Db($module);
 
-$config = Gserver()->Config()->getConfig('core');
+$Config = Gserver()->Config();
+
+define("ENVIRONMENT",$Config->getConfig('environment'));
+define("CORE",$Config->getConfig('core'));
+
+//<editor-fold desc="Environment configuration"
+
+// comming soon
+ini_set('display_errors', ENVIRONMENT['show_exceptions']);
+
+//</editor-fold>
 
 //<editor-fold desc="Preparing requested uri"
 
@@ -34,7 +44,7 @@ $_SERVER['REDIRECT_URL'] = substr($uri, -1) === '/' ? substr($uri, 0, -1) : $uri
 //</editor-fold>
 
 // Check for maintenance and redirect if needed
-if ($config['web_maintenance'] === 'yes' && $_SERVER['REDIRECT_URL'] !== 'maintenance') {
+if (CORE['web_maintenance'] === 'yes' && $_SERVER['REDIRECT_URL'] !== 'maintenance') {
     header('Location: localhost/g-server/maintenance');
     exit();
 }
