@@ -28,7 +28,13 @@ final class Config
     /**
      * Config constructor.
      */
-    private function __construct() {}
+    private function __construct() {
+
+        $Db = Gserver()->Db();
+        $this->config['core'] = $Db->fetchRow("SELECT * FROM config");
+        $this->config['environment'] = $Db->fetchRow("SELECT * FROM environment WHERE active = ?",'yes');
+
+    }
 
     /**
      * Singleton pattern don't allow clone
@@ -43,11 +49,7 @@ final class Config
     public static function getInstance(): Config {
 
         if (self::$Instance === NULL) {
-
-            $Config = new Config();
-            $Config->loadConfigs();
-            self::$Instance = $Config;
-
+            self::$Instance = new Config();
         }
 
         return self::$Instance;
@@ -55,28 +57,20 @@ final class Config
     }
 
     /**
-     * TODO: Implement another configs
-     *
-     * Hint: The core config can't modify over the frontend which means no Repository class exists
-     *
-     * Load all configs
-     */
-    private function loadConfigs(): void {
-        $Db = Gserver()->Db();
-        $this->config['core'] = $Db->fetchRow("SELECT * FROM config");
-    }
-
-    /**
      * @param string $config
+     *
+     * @throws \Exception
      *
      * @return array
      */
     public function getConfig(string $config): array {
 
-        if (is_array($this->config[$config])) {
+        if(!empty($this->config[$config])) {
             return $this->config[$config];
-        } else {
-            // Failure|Warning
+        }
+        else {
+            $info = debug_backtrace()[0];
+            throw new \Exception("Config $config doesn't exist called in ".$info['file'].":".$info['line']);
         }
 
     }
