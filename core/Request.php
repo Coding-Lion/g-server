@@ -178,9 +178,8 @@ final class Request
         $controllerPath = $basePath . strtolower($this->Controller->getName()) . DIRECTORY_SEPARATOR;
         $file = realpath($controllerPath . $this->action . '.php');
 
-        if($header === false || $file === false || $footer === false) {
-            // Failure
-            die(var_dump($header,$controllerPath . $this->action,$footer));
+        if($file === false) {
+            throw new \Exception('file not found '.realpath($controllerPath).DIRECTORY_SEPARATOR.$this->action.'.php');
         }
 
         $this->toInclude = [$header,$file,$footer];

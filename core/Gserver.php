@@ -49,6 +49,8 @@ final class Gserver
      * @param $name
      * @param $params
      *
+     * @throws \Exception
+     *
      * @return mixed
      */
     public function __call($name,$params) {
@@ -75,7 +77,11 @@ final class Gserver
                 }
 
             } else {
-                // Failure
+
+                $backtrace = debug_backtrace()[3] === '__construct' ? $backtrace = debug_backtrace()[3] : debug_backtrace()[4];
+                $info = 'wrong params given for '.$name.' from ';
+                throw new \Exception($info.$backtrace['function'].' in '.$backtrace['file'].':'.$backtrace['line']);
+
             }
 
         }
