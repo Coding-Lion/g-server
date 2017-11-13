@@ -51,6 +51,34 @@ $params = Gserver()->Request()->getParams();
         <link rel="shortcut icon" href="<?=$mediaLink?>images/icons/favicon.ico" type="image/x-icon">
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+        <?php if(ENVIRONMENT['show_debug_console'] === 'yes'): ?>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/classic/theme-classic/resources/theme-classic-all.css" rel="stylesheet" />
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script>
+        <script type="text/javascript">
+            Ext.onReady(function () {
+                var win = Ext.create('Ext.window.Window', {
+                    id: 'debug_console',
+                    title: '<?=$globals['servername']?> | Debug Console',
+                    titleAlign: 'center',
+                    height: 'auto',
+                    width: 250,
+                    x: 1670,
+                    y: 0,
+                    layout: 'auto',
+                    html: "<?php
+                        $var = '';
+                        echo '<p><b>$var</b></p>';
+                        if(is_array($var) || is_object($var)) {
+                            foreach($core_config as $key => $val) echo '<b>'.$key.':</b> '.$val.'<br>';
+                        }
+                        else {
+                            echo $var;
+                        }
+                    ?>"
+                }).show();
+            });
+        </script>
+        <?php endif; ?>
     </head>
     <body class="bg-dark">
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
