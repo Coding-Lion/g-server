@@ -38,45 +38,7 @@ final class Db
     /**
      * Db constructor.
      */
-    private function __construct() {}
-
-    /**
-     * Singleton pattern don't allow clone
-     */
-    private function __clone() {}
-
-    /**
-     * Initiate the Instance and return it
-     *
-     * @param string $module
-     *
-     * @return Db
-     */
-    public static function getInstance(string $module = ""): Db {
-
-        if (self::$Instance === NULL && empty($module)) {
-            // Failure
-            die();
-        }
-
-        if (self::$Instance === NULL) {
-
-            $Db = new Db();
-            $Db->connect($module);
-            self::$Instance = $Db;
-
-        }
-
-        return self::$Instance;
-
-    }
-
-    /**
-     * Establish the connection with the database
-     *
-     * @return void
-     */
-    private function connect(string $module): void {
+    private function __construct(string $module) {
 
         switch($module) {
 
@@ -84,9 +46,6 @@ final class Db
                 $config = DB_FRONTEND_CONFIG;
                 break;
             case "backend":
-                $config = DB_FRONTEND_CONFIG;
-                break;
-            default:
                 $config = DB_FRONTEND_CONFIG;
                 break;
 
@@ -104,6 +63,27 @@ final class Db
         $this->Mysqli->set_charset("utf8");
 
         $this->prefix = $config['prefix'];
+    }
+
+    /**
+     * Singleton pattern don't allow clone
+     */
+    private function __clone() {}
+
+    /**
+     * Initiate the Instance and return it
+     *
+     * @param string $module
+     *
+     * @return Db
+     */
+    public static function getInstance(string $module = ""): Db {
+
+        if (self::$Instance === NULL) {
+            self::$Instance = new Db($module);
+        }
+
+        return self::$Instance;
 
     }
 
@@ -125,11 +105,17 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
+     * @throws \Exception
+     *
      * @return string
      */
     public function prepareSql(string $sql, $params = NULL): string {
 
+        $backtrace = debug_backtrace()[2]['file'].":".debug_backtrace()[2]['line'];
+
         $countNeedle = substr_count($sql, '?');
+
+        $info = 'unequal needles : expect '.$countNeedle.', ';
 
         if ($params[0] === NO_PREFIX) {
             array_shift($params);
@@ -157,11 +143,11 @@ final class Db
                     $sql .= $lastElement;
                 }
             } else {
-                // Failure
+                throw new \Exception($info.$count. ' is given.' . $backtrace);
             }
         } else {
             if ($countNeedle > 1) {
-                // Failure
+                throw new \Exception($info. 'params must be given as array.' . $backtrace);
             } else {
                 $sql = str_replace("?", "'" . $params . "'", $sql);
             }
@@ -177,6 +163,8 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
+     * @throws \Exception
+     *
      * @return bool|\mysqli_result
      */
     private function sendQuery(string $sql, $params = NULL) {
@@ -185,15 +173,14 @@ final class Db
 
         $results = $this->Mysqli->query($prepared_sql);
 
+        $info = debug_backtrace()[1];
+
         if (!empty($this->Mysqli->error)) {
-            // Failure
+            throw new \Exception($sql . ' ' . $info['file'] . ":" . $info['line']);
         }
 
-        if($results === false) {
-            die(var_dump($prepared_sql));
-        }
         if ($results->num_rows === 0) {
-            return $this->getZeroResultByFunction(debug_backtrace()[1]['function']);
+            return $this->getZeroResultByFunction($info['function']);
         }
 
         return $results;
@@ -205,26 +192,26 @@ final class Db
      *
      * @param string $name
      *
-     * @return array|string
+     * @throws \Exception
+     *
+     * @return string|array
      */
     private function getZeroResultByFunction(string $name) {
 
-        // TODO: verify over ReflectionClass
-        switch($name) {
-            case "fetchOne":
-                $type = '';
-                break;
-            case "fetchRow":
-            case "fetchAll":
-            case "fetchPairs":
-            case "fetchKeyCollection":
-                $type = [];
-                break;
-            default:
-                // Failure
-        }
+        $Reflection = new \ReflectionClass($this);
 
-        return $type;
+        $docComment = $Reflection->getMethod($name)->getDocComment();
+
+        $dataType = trim(explode('|', explode('@return ',$docComment)[1])[0]);
+
+        switch($dataType) {
+            case 'string':
+                return '';
+            case 'array':
+                return [];
+            default:
+                throw new \Exception('unknown return type '.$dataType.' from function '.$name);
+        }
 
     }
 
@@ -234,16 +221,14 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return bool|\mysqli_result
+     * @return string|bool|\mysqli_result
      */
     public function fetchOne(string $sql, $params = NULL) {
 
         $mysqliResult = $this->sendQuery($sql, $params);
 
         if (is_object($mysqliResult)) {
-            while ($row = $mysqliResult->fetch_array()) {
-                return $row[0];
-            }
+            return $mysqliResult->fetch_array()[0];
         }
         else {
             return $mysqliResult;
@@ -257,16 +242,14 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return array
+     * @return array|bool|\mysqli_result
      */
-    public function fetchRow($sql, $params = NULL): array {
+    public function fetchRow($sql, $params = NULL) {
 
         $mysqliResult = $this->sendQuery($sql, $params);
 
         if (is_object($mysqliResult)) {
-            while ($row = $mysqliResult->fetch_array(MYSQLI_ASSOC)) {
-                return $row;
-            }
+            return $mysqliResult->fetch_array(MYSQLI_ASSOC);
         }
         else {
             return $mysqliResult;
@@ -280,23 +263,24 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return array
+     * @return array|bool|\mysqli_result
      */
-    public function fetchAll($sql, $params = NULL): array {
+    public function fetchAll($sql, $params = NULL) {
+
         $mysqliResult = $this->sendQuery($sql, $params);
 
         if (is_object($mysqliResult)) {
 
             $result = [];
-
             while ($row = $mysqliResult->fetch_array(MYSQLI_ASSOC)) {
                 $result[] = $row;
             }
+
+            return $result;
+
         } else {
             return $mysqliResult;
         }
-
-        return $result;
 
     }
 
@@ -306,23 +290,26 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return array
+     * @dataType string
+     *
+     * @return array|bool|\mysqli_result
      */
     public function fetchPairs($sql, $params = NULL): array {
+
         $mysqliResult = $this->sendQuery($sql, $params);
 
         if (is_object($mysqliResult)) {
 
             $result = [];
-
             while ($row = $mysqliResult->fetch_array(MYSQLI_NUM)) {
                 $result[$row[0]] = $row[1];
             }
+
+            return $result;
+
         } else {
             return $mysqliResult;
         }
-
-        return $result;
 
     }
 
@@ -332,7 +319,7 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return array
+     * @return array|bool|\mysqli_result
      */
     public function fetchKeyPairCollection($sql, $params = NULL): array {
 
@@ -341,15 +328,15 @@ final class Db
         if (is_object($mysqliResult)) {
 
             $result = [];
-
             while ($row = $mysqliResult->fetch_array(MYSQLI_NUM)) {
                 $result[$row[0]][] = $row[1];
             }
+
+            return $result;
+
         } else {
             return $mysqliResult;
         }
-
-        return $result;
 
     }
 
@@ -359,7 +346,7 @@ final class Db
      * @param string $sql
      * @param null|string|array $params
      *
-     * @return array
+     * @return array|bool|\mysqli_result
      */
     public function fetchKeyCollection($sql, $params = NULL): array {
 
@@ -368,15 +355,15 @@ final class Db
         if (is_object($mysqliResult)) {
 
             $result = [];
-
             while ($row = $mysqliResult->fetch_array(MYSQLI_NUM)) {
                 $result[array_shift($row)][] = $row;
             }
+
+            return $result;
+
         } else {
             return $mysqliResult;
         }
-
-        return $result;
 
     }
 
