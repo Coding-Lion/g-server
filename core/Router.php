@@ -258,7 +258,7 @@ final class Router
     public function isLinkMapped(): bool {
 
         $Table = $this->Repository->getTable('rewrite_urls');
-        $Table->setDataSet(['link' => $_SERVER['REDIRECT_URL']]);
+        $Table->setDataSet(['link',$_SERVER['REDIRECT_URL']]);
 
         $dataSet = $Table->getDataSet();
 
