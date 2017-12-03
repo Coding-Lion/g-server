@@ -52,11 +52,11 @@ $params = Gserver()->Request()->getParams();
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
         <?php if(ENVIRONMENT['show_debug_console'] === 'yes'): ?>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/classic/theme-classic/resources/theme-classic-all.css" rel="stylesheet" />
+        <link href="https://examples.sencha.com/extjs/6.5.1/classic/theme-gray/resources/theme-gray-all.css" rel="stylesheet" />
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/extjs/6.0.0/ext-all.js"></script>
         <script type="text/javascript">
             Ext.onReady(function () {
-                var win = Ext.create('Ext.window.Window', {
+                Ext.create('Ext.window.Window', {
                     id: 'debug_console',
                     title: '<?=$globals['servername']?> | Debug Console',
                     titleAlign: 'center',

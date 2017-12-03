@@ -37,7 +37,7 @@ final class Session
 
         $Table = $this->Repository->getTable('user');
 
-        $Table->setDataSet(['sessionId', session_id()]);
+        $Table->setDataSet(['frontend', 'sessionId', session_id()]);
 
         $user = $Table->getDataSet();
 

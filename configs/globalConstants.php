@@ -28,8 +28,6 @@ const DB_BACKEND_CONFIG = [
     'socket'    => 'false',
 ];
 
-const NO_PREFIX = 'no_prefix';
-
 //</editor-fold>
 
 // These levels are needed, used in all controllers

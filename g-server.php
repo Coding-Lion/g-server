@@ -13,9 +13,8 @@ header('Content-Type: text/html; charset=utf-8');
  */
 require_once 'autoload.php';
 
-$module = strpos($_SERVER['REQUEST_URI'], 'backend') !== false ? 'backend' : 'frontend';
-
-Gserver()->Db($module);
+define("MODULE", strpos($_SERVER['REQUEST_URI'], 'backend') !== false ? 'backend' : 'frontend');
+Gserver()->Db(MODULE);
 
 $Config = Gserver()->Config();
 

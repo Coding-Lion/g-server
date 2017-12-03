@@ -34,7 +34,12 @@ class locale extends Model
     /**
      * @var string
      */
-    private $name = '';
+    private $name_de = '';
+
+    /**
+     * @var string
+     */
+    private $name_en = '';
 
     /**
      * @var string
@@ -83,15 +88,29 @@ class locale extends Model
     /**
      * @param string $name
      */
-    protected function setName(string $name): void {
-        $this->name = $name;
+    protected function setName_de(string $name): void {
+        $this->name_de = $name;
     }
 
     /**
      * @return string
      */
-    public function getName(): string {
-        return $this->name;
+    public function getName_de(): string {
+        return $this->name_de;
+    }
+
+    /**
+     * @param string $name
+     */
+    protected function setName_en(string $name): void {
+        $this->name_en = $name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName_en(): string {
+        return $this->name_en;
     }
 
     /**

@@ -9,6 +9,8 @@
 namespace gserver\controllers\backend;
 
 
+use gserver\core\Gserver;
+
 class Auth extends Controller
 {
 
@@ -50,5 +52,44 @@ class Auth extends Controller
 
     public function indexAction(): bool {
         return true;
+    }
+
+    public function loginAction(): string {
+
+        $this->rendering = false;
+
+        $username = $_POST['username'];
+        $passwd = $_POST['password'];
+
+        $Db = Gserver()->Db();
+
+        $result = $Db->fetchRow("SELECT Id,Password,SecurityLevel FROM accounts WHERE Username = ?", $username);
+
+        if(empty($result) || $result['SecurityLevel'] < SECURITY_LEVEL['Game_Master']) {
+            die('false');
+        }
+
+        $Hashing = Gserver()->Hashing(['namespace' => 'components']);
+
+        if($Hashing->checkHash($passwd,$result['Password'])) {
+            $Db->query("UPDATE user SET sessionId = ? WHERE accountId = ?",['frontend', session_id(), $result['Id']]);
+            die('true');
+        } else {
+            die('false');
+        }
+
+    }
+
+    public function logoutAction(): string {
+
+        $this->rendering = false;
+
+        $Db = Gserver()->Db();
+
+        $Db->query("UPDATE user SET sessionId = '' WHERE sessionId = ?", ['frontend', session_id()]);
+
+        header('Location:' . Gserver()->Router()->getRootLink().'backend');
+        exit();
+
     }
 }
