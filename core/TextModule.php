@@ -56,13 +56,13 @@ final class TextModule
         $this->controller = $Request->getController()->getName();
         $action = $Request->getAction();
 
-        $namespace = $this->locale . '/' . $Router->getModule() . '/' . $this->controller . '/' . $action;
+        $namespace = $this->locale . '/' . MODULE . '/' . $this->controller . '/' . $action;
 
-        $blocks = $Table->getAll(['namespace' => $namespace]);
+        $blocks = $Table->getAll(['frontend', 'namespace' => $namespace]);
 
         $this->setBlocks($blocks);
 
-        $blocks = $Table->getAll(['namespace' => $this->locale .'/global']);
+        $blocks = $Table->getAll(['frontend', 'namespace' => $this->locale .'/global']);
 
         $this->setBlocks($blocks);
 
@@ -95,7 +95,7 @@ final class TextModule
 
         if (!empty($blocks)) {
 
-            $namespace = $blocks[0]['namespace'] === $this->locale . '/global' ? "global" : $this->controller;
+            $namespace = $blocks[0]['namespace'] === $this->locale . '/global' ? 'global' : $this->controller;
 
             foreach($blocks as $block) {
 

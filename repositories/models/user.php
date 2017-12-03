@@ -172,7 +172,7 @@ class user extends Model
         }
 
         $this->account = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE id = ?",
-            [NO_PREFIX,$this->getAccountId()]);
+            ['backend', $this->getAccountId()]);
 
     }
 
@@ -197,7 +197,7 @@ class user extends Model
         }
 
         $this->ban = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE AccountId = ?",
-            [NO_PREFIX,$this->getAccountId()]);
+            ['backend', $this->getAccountId()]);
 
     }
 

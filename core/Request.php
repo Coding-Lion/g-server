@@ -19,11 +19,6 @@ final class Request
     private static $Instance = NULL;
 
     /**
-     * @var string
-     */
-    protected $module = '';
-
-    /**
      * @var object|null
      */
     protected $Controller = NULL;
@@ -80,18 +75,16 @@ final class Request
      */
     private function setRequest(): void {
 
-        $this->module = strpos($_SERVER['REDIRECT_URL'], 'backend') !== false ? 'backend' : 'frontend';
-
         $controllersPath = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers');
-        require_once $controllersPath . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR . 'Controller.php';
+        require_once $controllersPath . DIRECTORY_SEPARATOR . MODULE . DIRECTORY_SEPARATOR . 'Controller.php';
         require_once $controllersPath . DIRECTORY_SEPARATOR . 'NotFound.php';
 
         $controllerNamespace = '\\gserver\\controllers\\';
-        $namespace = $controllerNamespace . $this->module . '\\';
-        $defaultClass = $controllerNamespace . $this->module . '\\Index';
+        $namespace = $controllerNamespace . MODULE . '\\';
+        $defaultClass = $controllerNamespace . MODULE . '\\Index';
 
-        if (empty($_SERVER['REDIRECT_URL']) || $this->module === $_SERVER['REDIRECT_URL']) {
-            require_once $controllersPath . DIRECTORY_SEPARATOR . $this->module . DIRECTORY_SEPARATOR . 'Index.php';
+        if (empty($_SERVER['REDIRECT_URL']) || MODULE === $_SERVER['REDIRECT_URL']) {
+            require_once $controllersPath . DIRECTORY_SEPARATOR . MODULE . DIRECTORY_SEPARATOR . 'Index.php';
             $this->Controller = new $defaultClass();
         }
         else {
@@ -166,13 +159,13 @@ final class Request
     private function setToInclude(): void {
 
         $basePath = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR .
-            $this->module . DIRECTORY_SEPARATOR;
+            MODULE . DIRECTORY_SEPARATOR;
 
         $header = realpath($basePath . 'header.php');
         $footer = realpath($basePath . 'footer.php');
 
         if($this->Controller->getName() === 'NotFound') {
-            $basePath = str_replace(DIRECTORY_SEPARATOR.$this->module, '',$basePath);
+            $basePath = str_replace(DIRECTORY_SEPARATOR.MODULE, '',$basePath);
         }
 
         $controllerPath = $basePath . strtolower($this->Controller->getName()) . DIRECTORY_SEPARATOR;

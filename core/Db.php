@@ -42,11 +42,11 @@ final class Db
 
         switch($module) {
 
-            case "frontend":
+            case 'frontend':
                 $config = DB_FRONTEND_CONFIG;
                 break;
-            case "backend":
-                $config = DB_FRONTEND_CONFIG;
+            case 'backend':
+                $config = DB_BACKEND_CONFIG;
                 break;
 
         }
@@ -63,6 +63,7 @@ final class Db
         $this->Mysqli->set_charset("utf8");
 
         $this->prefix = $config['prefix'];
+
     }
 
     /**
@@ -77,7 +78,7 @@ final class Db
      *
      * @return Db
      */
-    public static function getInstance(string $module = ""): Db {
+    public static function getInstance(string $module = ''): Db {
 
         if (self::$Instance === NULL) {
             self::$Instance = new Db($module);
@@ -111,17 +112,17 @@ final class Db
      */
     public function prepareSql(string $sql, $params = NULL): string {
 
-        $backtrace = debug_backtrace()[2]['file'].":".debug_backtrace()[2]['line'];
+        $backtrace = debug_backtrace()[2]['file'].':'.debug_backtrace()[2]['line'];
 
         $countNeedle = substr_count($sql, '?');
 
         $info = 'unequal needles : expect '.$countNeedle.', ';
 
-        if ($params[0] === NO_PREFIX) {
-            array_shift($params);
-        } else {
-            $sql = str_replace('FROM ', 'FROM ' . $this->prefix, $sql);
-        }
+        $prefix = $this->overwritePrefix($params);
+
+        $str = $this->detectQueryType($sql);
+
+        $sql = str_replace($str, $str . $prefix, $sql);
 
         if ($countNeedle === 0 && $params === NULL) {
             return $sql;
@@ -158,6 +159,59 @@ final class Db
     }
 
     /**
+     * Return the the replacement string
+     *
+     * @param string $sql
+     *
+     * @throws \Exception
+     *
+     * @return string
+     */
+    private function detectQueryType(string $sql): string {
+
+        if(preg_match('/SELECT/i', $sql)) {
+            return 'FROM ';
+        } elseif(preg_match('/UPDATE/i', $sql)) {
+            return 'UPDATE ';
+        } elseif(preg_match('/INSERT/i', $sql)) {
+            return 'INTO ';
+        } else {
+            $backtrace = debug_backtrace()[2]['file'].':'.debug_backtrace()[2]['line'];
+            throw new \Exception('No allowed query type. | ' . $sql . ' | ' . $backtrace);
+        }
+
+    }
+
+    /**
+     * Return the prefix string
+     *
+     * @param string|array $params
+     *
+     * @return string
+     */
+    private function overwritePrefix(&$params): string {
+
+        if (is_array($params)) {
+
+            if($params[0] === 'frontend' || $params[0] === 'backend') {
+                return array_shift($params) === 'frontend' ? DB_FRONTEND_CONFIG['prefix'] : DB_BACKEND_CONFIG['prefix'];
+            }
+
+        } else {
+
+            if($params === 'frontend' || $params === 'backend') {
+                $prefix = $params === 'frontend' ? DB_FRONTEND_CONFIG['prefix'] : DB_BACKEND_CONFIG['prefix'];
+                return $prefix;
+            }
+
+        }
+
+        return $this->prefix;
+
+    }
+
+
+    /**
      * Helper function for all fetch functions
      *
      * @param string $sql
@@ -176,7 +230,7 @@ final class Db
         $info = debug_backtrace()[1];
 
         if (!empty($this->Mysqli->error)) {
-            throw new \Exception($sql . ' ' . $info['file'] . ":" . $info['line']);
+            throw new \Exception($prepared_sql . ' ' . $info['file'] . ':' . $info['line']);
         }
 
         if ($results->num_rows === 0) {
@@ -199,6 +253,10 @@ final class Db
     private function getZeroResultByFunction(string $name) {
 
         $Reflection = new \ReflectionClass($this);
+
+        if($name === 'setDataSet') {
+            return '';
+        }
 
         $docComment = $Reflection->getMethod($name)->getDocComment();
 

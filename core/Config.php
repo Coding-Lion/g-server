@@ -31,8 +31,8 @@ final class Config
     private function __construct() {
 
         $Db = Gserver()->Db();
-        $this->config['core'] = $Db->fetchRow("SELECT * FROM config");
-        $this->config['environment'] = $Db->fetchRow("SELECT * FROM environment WHERE active = ?",'yes');
+        $this->config['core'] = $Db->fetchRow("SELECT * FROM config",'frontend');
+        $this->config['environment'] = $Db->fetchRow("SELECT * FROM environment WHERE active = ?",['frontend','yes']);
 
     }
 
@@ -70,7 +70,7 @@ final class Config
         }
         else {
             $info = debug_backtrace()[0];
-            throw new \Exception("Config $config doesn't exist called in ".$info['file'].":".$info['line']);
+            throw new \Exception('Config '. $config .'doesn\'t exist called in '.$info['file'].':'.$info['line']);
         }
 
     }

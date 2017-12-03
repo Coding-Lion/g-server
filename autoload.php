@@ -6,7 +6,7 @@
  * Time: 10:51
  */
 
-$directories = ['configs', 'core', 'repositories'];
+$directories = ['configs', 'core', 'repositories', 'components'];
 
 /**
  * Load all files in the given directories

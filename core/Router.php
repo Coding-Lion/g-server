@@ -31,11 +31,6 @@ final class Router
     /**
      * @var string
      */
-    protected $module = '';
-
-    /**
-     * @var string
-     */
     protected $locale = '';
 
     /**
@@ -65,7 +60,6 @@ final class Router
 
         if (!$this->isLinkMapped($_SERVER['REDIRECT_URL'])) {
 
-            $this->setModule();
             $this->setLocale();
             $this->setController();
             $this->setAction();
@@ -95,20 +89,6 @@ final class Router
     }
 
     /**
-     * Set the module
-     */
-    private function setModule(): void {
-        $this->module = strpos($_SERVER['REDIRECT_URL'], 'backend') !== false ? 'backend' : 'frontend';
-    }
-
-    /**
-     * @return string
-     */
-    public function getModule(): string {
-        return $this->module;
-    }
-
-    /**
      * Set the language
      */
     private function setLocale(): void {
@@ -124,18 +104,18 @@ final class Router
             $this->redirect = true;
 
             $Table = $this->Repository->getTable('locale');
-            $Table->setDataSet(['main','yes']);
+            $Table->setDataSet(['frontend', 'main', 'yes']);
 
-            $this->locale = strtolower($Table->getDataSet()['iso2']);
+            $this->locale = substr($Table->getDataSet()['iso2'],0,2);
             $location = $_SERVER['SUBDIRECTORY'] . str_replace($oldLocale, $this->locale, $_SERVER['REDIRECT_URL']);
 
             if(empty($oldLocale) && $location === $_SERVER['SUBDIRECTORY']) {
                 $location .= $this->locale;
             }
 
-            if($this->module === 'backend') {
+            if(MODULE === 'backend') {
                 $localePath = '/'.$this->locale.'/';
-                $location = str_replace($localePath, $localePath.$this->module.'/',$location);
+                $location = str_replace($localePath, $localePath.MODULE.'/',$location) . '/backend';
             }
 
             header('Location: ' . $location);
@@ -158,10 +138,10 @@ final class Router
     private function setController(): void {
 
         $path = __DIR__ . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR;
-        $modulePath = $this->module . DIRECTORY_SEPARATOR;
+        $modulePath = MODULE . DIRECTORY_SEPARATOR;
         $parts = explode('/',$_SERVER['REDIRECT_URL']);
 
-        if ($this->module === "backend") {
+        if (MODULE === 'backend') {
             $controller = empty($parts[2]) ? 'index' : $parts[2];
         }
         else {
@@ -195,7 +175,7 @@ final class Router
 
         $parts = explode('/', $_SERVER['REDIRECT_URL']);
 
-        if ($this->module === 'backend') {
+        if (MODULE === 'backend') {
             $this->action = empty($parts[3]) ? 'index' : $parts[3];
         }
         else {
@@ -239,18 +219,22 @@ final class Router
      */
     private function localeExists(): bool {
 
-        $Table = $this->Repository->getTable('locale');
-        $Table->setDataSet(['iso2', $this->locale]);
+        if(!empty($this->locale)) {
+            $Table = $this->Repository->getTable('locale');
+            $Table->setDataSet(['frontend', 'iso2', $this->locale.'%']);
 
-        if ($Table->getDataSet()['id'] !== 0) {
-            return true;
-        } else {
-            return false;
+            if ($Table->getDataSet()['id'] !== 0) {
+                return true;
+            }
         }
+
+        return false;
 
     }
 
     /**
+     * Must move
+     *
      * Check if the requested uri is linked
      *
      * @return bool
@@ -258,7 +242,7 @@ final class Router
     public function isLinkMapped(): bool {
 
         $Table = $this->Repository->getTable('rewrite_urls');
-        $Table->setDataSet(['link',$_SERVER['REDIRECT_URL']]);
+        $Table->setDataSet(['frontend', 'link', $_SERVER['REDIRECT_URL']]);
 
         $dataSet = $Table->getDataSet();
 
@@ -267,7 +251,6 @@ final class Router
             $parts = explode('/', $dataSet['intern']);
 
             $this->locale = $dataSet['iso2'];
-            $this->module = array_shift($parts);
             $this->controller = array_shift($parts);
             $this->action = array_shift($parts);
 
@@ -305,6 +288,15 @@ final class Router
      */
     private function getProtocol(): string {
         return isset($_SERVER['HTTPS']) ? 'https://' : 'http://';
+    }
+
+    /**
+     * Get all locales
+     *
+     * @return array
+     */
+    public function getAllLocale(): array {
+        return $this->Repository->getTable('locale')->getAll(['frontend']);
     }
 
 }

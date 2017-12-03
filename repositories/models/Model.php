@@ -72,12 +72,14 @@ abstract class Model
         $Reflection = new \ReflectionClass($this);
         $table = $Reflection->getShortName();
 
+        $module = $this->getModule($params);
+
         if (empty($params)) {
             $row = $this->Db->fetchRow("SELECT * FROM " . $table);
         } else {
 
-            if (count($params) !== 2) {
-                throw new \Exception('unequal then 2 params is not implemented yet');
+            if (count($params) < 2 && count($params) > 3) {
+                throw new \Exception('unequal then '. count($params) .' params is not implemented yet');
             }
             else {
 
@@ -89,10 +91,11 @@ abstract class Model
                 }
 
                 if(!empty($value) && !is_numeric($value)) {
-                    $value = "'" . $value . "'";
+                    strpos($value, '%') !== false ? $operator = ' LIKE ': $operator = '=';
+                    $value = '"' . $value . '"';
                 }
 
-                $row = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE " . $key . " = " . $value);
+                $row = $this->Db->fetchRow("SELECT * FROM " . $table . " WHERE " . $key . $operator . $value,$module);
 
             }
 
@@ -135,7 +138,21 @@ abstract class Model
 
     }
 
+    /**
+     * @param array $params
+     *
+     * @return array
+     */
     public function getAll(array $params = []): array {
+
+        $Reflection = new \ReflectionClass($this);
+        $table = $Reflection->getShortName();
+
+        $module = $this->getModule($params);
+
+        if(empty($params)) {
+            return $this->Db->fetchAll("SELECT * FROM " . $table, $module);
+        }
 
         $where = '';
 
@@ -154,10 +171,42 @@ abstract class Model
 
         $where = substr($where,0,-5);
 
-        $Reflection = new \ReflectionClass($this);
-        $table = $Reflection->getShortName();
-
-        return $this->Db->fetchAll("SELECT * FROM " . $table . " WHERE " . $where);
+        return $this->Db->fetchAll("SELECT * FROM " . $table . " WHERE " . $where, $module);
 
     }
+
+    /**
+     * Return the module string
+     *
+     * @param string|array $params
+     *
+     * @return string
+     */
+    private function getModule(&$params): string {
+
+        if(empty($params)) {
+            return MODULE;
+        }
+
+        if (is_array($params)) {
+            if($params[0] === 'frontend' || $params[0] === 'backend') {
+                return array_shift($params);
+            }
+
+        } else {
+
+            if($params === 'frontend' || $params === 'backend') {
+
+                $module = $params;
+                unset($params);
+                return $module;
+
+            }
+
+        }
+
+        return MODULE;
+
+    }
+
 }
